@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trouble Map</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            padding: 10px;
+            background-color: #f0f0f0;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        #controls h3 {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+
+        #testToggle {
+            padding: 6px 12px;
+            margin: 10px 10px 0 10px;
+            /* 上右下左，底部间距为0 */
+            background-color: #ffcccc;
+            color: #333;
+            border: 1px solid #aaa;
+            cursor: pointer;
+        }
+
+        #admin-controls {
+            padding: 10px;
+            margin-top: 0;
+            /* 去除与按钮之间的空行 */
+            display: none;
+        }
+
+
+        button {
+            font-size: 12px;
+            padding: 3px 7x;
+            margin-right: 5px;
+            margin-bottom: 4px;
+        }
+    </style>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCX03_MOSrGu8CkY7BxHaIGhJBHM3NDjP8&callback=initMap&libraries=geometry">
+        </script>
+</head>
+
+<body>
+    <h1>TROUBLE MAP</h1>
+
+    <div id="map"></div>
+    <button id="testToggle" onclick="toggleControls()">【テスト用】押さないでください</button>
+    <div id="admin-controls">
+        <div id="controls">
+            <h3>困りごとパターンの選択</h3>
+            <button onclick="switchPattern('pattern1')">パターン1</button>
+            <button onclick="switchPattern('pattern2')">パターン2</button>
+            <button onclick="switchPattern('pattern3')">パターン3</button>
+
+            <h3>UI条件の選択</h3>
+            <button onclick="switchCondition('noHint')">無提示</button>
+            <button onclick="switchCondition('similarHint')">類似投稿提示</button>
+            <button onclick="switchCondition('similarPlusSolved')">類似投稿＋解決人数</button>
+        </div>
+    </div>
+    <script>
+        function toggleControls() {
+            const controls = document.getElementById("admin-controls");
+            controls.style.display = controls.style.display === "none" ? "block" : "none";
+        }
+    </script>
+    <script src="main.js"></script>
+</body>
+
+</html>
