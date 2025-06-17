@@ -67,6 +67,7 @@ function loadDataAndDisplayMarkers(pattern, condition) {
                     type: markerData.type,
                     content: markerData.questionText || `困りごと: ${markerData.type}に関する問題`,
                     answered: false,
+                    answeredByUser: false,
                     responseText: null,
                     defaultIcon: iconUrl
                 };
@@ -98,6 +99,8 @@ function clearMarkers() {
 
 function bindInfoWindow(marker) {
     const infoWindow = new google.maps.InfoWindow();
+
+
     marker.addListener("click", () => {
         if (activeInfoWindow) activeInfoWindow.close();
 
@@ -211,9 +214,10 @@ function bindInfoWindow(marker) {
 
 
         } else {
-            const helpCount = getNearbyMarkers(marker.getPosition(), marker.customData.type, 20).length;
-
-            const badgeHtml = currentCondition === 'similarPlusSolved' ? `
+            let badgeHtml = '';
+            if (currentCondition === 'similarPlusSolved' && marker.customData.answeredByUser) {
+                const helpCount = getNearbyMarkers(marker.getPosition(), marker.customData.type, 20).length;
+                badgeHtml = `
         <div style="
             background: #e6f5ea;
             color: #256029;
@@ -225,7 +229,9 @@ function bindInfoWindow(marker) {
         ">
             👏 この回答で <strong>${helpCount}</strong> 人が助けられました！
         </div>
-    ` : '';
+    `;
+            }
+
 
             const contentHtml = `
         <div style="display:flex; align-items:center; gap:10px; justify-content:space-between;">
@@ -351,45 +357,60 @@ function submitResponse(id) {
     sameTypeNearby.forEach(m => {
         m.customData.answered = true;
         m.customData.responseText = responseText;
+        m.customData.answeredByUser = false;
 
         if (currentCondition === 'similarPlusSolved') {
             m.setOpacity(0.3);
         } else {
             m.setOpacity(1.0);
         }
-
-        if (m.infoWindow && m.infoWindow.getMap()) {
-            m.infoWindow.setContent(`
-                <div>
-                    <p><strong>ご回答ありがとうございます!</strong></p>
-
-<div style="margin-top: 6px; font-size: 13px; color: #444;">
-  ✏️ <span style="color: #555;">投稿内容：</span><br>
-
-  <div id="responseView_${marker.customData.id}" style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
-    ${marker.customData.responseText}
-    <div style="text-align: right; margin-top: 4px;">
-      <button onclick="editResponse(${marker.customData.id})"
-        style="font-size: 12px; padding: 2px 8px; border: none; background-color: #eee; border-radius: 12px; cursor: pointer;">編集</button>
-    </div>
-  </div>
-
-  <div id="responseEdit_${marker.customData.id}" style="display: none; margin-top: 6px;">
-    <textarea id="editInput_${marker.customData.id}" style="width: 100%; font-size: 13px; padding: 6px; border-radius: 6px; border: 1px solid #ccc;">${marker.customData.responseText}</textarea>
-    <div style="text-align: right; margin-top: 4px;">
-  <button onclick="cancelEdit(${marker.customData.id})"
-    style="font-size: 12px; padding: 4px 10px; border: none; background-color: #eee; color: #333; border-radius: 14px; cursor: pointer; margin-right: 6px;">キャンセル</button>
-  <button onclick="saveResponse(${marker.customData.id})"
-    style="font-size: 12px; padding: 4px 10px; border: none; background-color: #4caf50; color: white; border-radius: 14px; cursor: pointer;">保存</button>
-</div>
-
-  </div>
-</div>
-
-                </div>
-            `);
-        }
     });
+    marker.customData.answeredByUser = true;
+    // 只更新用户点击并回答的 marker 的 infoWindow
+    if (marker.infoWindow && marker.infoWindow.getMap()) {
+        if (currentCondition === 'similarPlusSolved') {
+            const helpCount = sameTypeNearby.length;
+            const badgeHtml = `
+            <div style="
+                background: #e6f5ea;
+                color: #256029;
+                margin-top: 10px;
+                padding: 8px 12px;
+                border-radius: 10px;
+                border-left: 4px solid #4caf50;
+                font-size: 13px;
+            ">
+                👏 この回答で <strong>${helpCount}</strong> 人が助けられました！
+            </div>
+        `;
+
+            marker.infoWindow.setContent(`
+            <div style="font-family: sans-serif; font-size: 14px; padding: 10px; max-width: 300px;">
+                <p><strong>ご回答ありがとうございます!</strong></p>
+                <div style="margin-top: 6px; font-size: 13px; color: #444;">
+                    ✏️ <span style="color: #555;">投稿内容：</span><br>
+                    <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
+                        ${marker.customData.responseText}
+                    </div>
+                </div>
+                ${badgeHtml}
+            </div>
+        `);
+        } else {
+            marker.infoWindow.setContent(`
+            <div style="font-family: sans-serif; font-size: 14px; padding: 10px;">
+                <p><strong>ご回答ありがとうございます!</strong></p>
+                <div style="margin-top: 6px; font-size: 13px; color: #444;">
+                    ✏️ <span style="color: #555;">投稿内容：</span><br>
+                    <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
+                        ${marker.customData.responseText}
+                    </div>
+                </div>
+            </div>
+        `);
+        }
+    }
+
 
     // === 如果是类似投稿＋解決人数提示，显示徽章 + Toast ===
     if (currentCondition === 'similarPlusSolved') {
