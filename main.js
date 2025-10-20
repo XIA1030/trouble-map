@@ -33,6 +33,82 @@ function switchCondition(condition) {
     currentCondition = condition;
     loadDataAndDisplayMarkers(currentPattern, currentCondition);
 }
+// === 相对时间工具 ===
+function randomPastDate(maxMinutes = 7 * 24 * 60) {
+    // 随机过去时间，默认 7 天内
+    const now = Date.now();
+    const delta = Math.floor(Math.random() * maxMinutes * 60 * 1000);
+    return new Date(now - delta);
+}
+
+function timeAgo(date) {
+    const s = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (s < 60) return `${s}秒前`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}分前`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}時間前`;
+    const d = Math.floor(h / 24);
+    return `${d}日前`;
+}
+
+// 针对打开着的 InfoWindow，按 id 每分钟刷新“时间前”文本
+function startTimeTicker(marker) {
+    if (marker._timeTimer) clearInterval(marker._timeTimer);
+    const update = () => {
+        const el = document.getElementById(`time_${marker.customData.id}`);
+        if (!el) {
+            clearInterval(marker._timeTimer);
+            return;
+        }
+        el.textContent = timeAgo(marker.customData.createdAt);
+    };
+    update();
+    marker._timeTimer = setInterval(update, 60 * 1000);
+}
+// === いいね用工具 ===
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// 点击后切换：未点赞→+1，已点赞→-1
+function toggleLike(id) {
+  const m = allMarkers.find(mm => mm.customData.id === id);
+  if (!m) return;
+
+  // DOM 引用
+  const btn = document.getElementById(`likeBtn_${id}`);
+  const countEl = document.getElementById(`like_${id}`);
+  const heartEl = document.getElementById(`heart_${id}`);
+  if (!btn || !countEl || !heartEl) return;
+
+  // 切换状态
+  const liked = !!m.customData.likedByMe;
+  if (liked) {
+    // 取消点赞
+    m.customData.likedByMe = false;
+    m.customData.likeCount = Math.max(0, (m.customData.likeCount || 0) - 1);
+    countEl.textContent = m.customData.likeCount;
+    heartEl.textContent = '🤍';
+    // 恢复“未点赞”样式
+    btn.style.background = '#ffeef0';
+    btn.style.color = '#d6336c';
+    btn.setAttribute('data-liked', '0');
+    btn.title = 'いいね！';
+  } else {
+    // 点赞
+    m.customData.likedByMe = true;
+    m.customData.likeCount = (m.customData.likeCount || 0) + 1;
+    countEl.textContent = m.customData.likeCount;
+    heartEl.textContent = '❤️';
+    // 激活“已点赞”样式
+    btn.style.background = '#ffd6dc';
+    btn.style.color = '#b71852';
+    btn.setAttribute('data-liked', '1');
+    btn.title = 'いいねを取消';
+  }
+}
+
 
 function loadAvatars(callback) {
     fetch('./avatars/avatar_list.json')
@@ -69,7 +145,11 @@ function loadDataAndDisplayMarkers(pattern, condition) {
                     answered: false,
                     answeredByUser: false,
                     responseText: null,
-                    defaultIcon: iconUrl
+                    defaultIcon: iconUrl,
+                    createdAt: randomPastDate(), // 👈 随机的过去时间（默认 7 天内）
+                    likeCount: randomInt(0, 200),   // 随机 0-200 的「いいね」
+                    likedByMe: false             // 🆕 我是否点过赞（本地会话内）
+
                 };
                 bindInfoWindow(marker);
                 allMarkers.push(marker);
@@ -125,13 +205,42 @@ function bindInfoWindow(marker) {
 
         const nearby = getNearbyMarkers(marker.getPosition(), marker.customData.type, 20);
         const avatar = avatarMap[marker.customData.id % Object.keys(avatarMap).length];
+        const timeStr = timeAgo(marker.customData.createdAt);
+        const timeBadge = `
+      <span id="time_${marker.customData.id}" 
+            style="color:#888; font-size:12px; white-space:nowrap;">${timeStr}</span>`;
+        const liked = !!marker.customData.likedByMe;
+const likeBadge = `
+  <button
+    id="likeBtn_${marker.customData.id}"
+    onclick="toggleLike(${marker.customData.id})"
+    style="
+      display:inline-flex; align-items:center; gap:4px;
+      border:none; ${liked ? 'background:#ffd6dc; color:#b71852;' : 'background:#ffeef0; color:#d6336c;'}
+      padding:2px 8px; border-radius:12px; font-size:12px; cursor:pointer;
+    "
+    data-liked="${liked ? '1' : '0'}"
+    title="${liked ? 'いいねを取消' : 'いいね！'}"
+  ><span id="heart_${marker.customData.id}">${liked ? '❤️' : '🤍'}</span>
+   <span id="like_${marker.customData.id}">${marker.customData.likeCount}</span>
+  </button>`;
 
-        if (!marker.customData.answered) {
+
+        
+            if (!marker.customData.answered) {
             let contentHtml = `
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="${avatar.avatar}" width="32" height="32" style="border-radius:50%;">
-                    <strong>${avatar.name} さん</strong>
-                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+  <div style="display:flex; align-items:center; gap:10px;">
+    <img src="${avatar.avatar}" width="32" height="32" style="border-radius:50%;">
+    <strong>${avatar.name} さん</strong>
+  </div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    ${timeBadge}
+    ${likeBadge}
+  </div>
+</div>
+
+
                 <p style="margin-top:5px;">「${marker.customData.content}」</p>`;
 
             if (currentCondition === 'similarPlusSolved') {
@@ -235,23 +344,27 @@ function bindInfoWindow(marker) {
 
             const contentHtml = `
         <div style="display:flex; align-items:center; gap:10px; justify-content:space-between;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <img src="${avatar.avatar}" width="32" height="32" style="border-radius:50%;">
-                <strong>${avatar.name} さん</strong>
-                
-            </div>
-            
-            <button id="toggleBtn_${marker.customData.id}" onclick="toggleQuestion(${marker.customData.id})"
-                style="
-                    font-size: 12px;
-                    padding: 2px 8px;
-                    border: none;
-                    background-color: #f0f0f0;
-                    border-radius: 12px;
-                    cursor: pointer;
-                "
-            >原文</button>
-        </div>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <img src="${avatar.avatar}" width="32" height="32" style="border-radius:50%;">
+    <strong>${avatar.name} さん</strong>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:8px;">
+    ${timeBadge}
+    ${likeBadge}
+    <button id="toggleBtn_${marker.customData.id}" onclick="toggleQuestion(${marker.customData.id})"
+      style="
+        font-size: 12px;
+        padding: 2px 8px;
+        border: none;
+        background-color: #f0f0f0;
+        border-radius: 12px;
+        cursor: pointer;
+      "
+    >原文</button>
+  </div>
+</div>
+
 <div id="question_${marker.customData.id}" style="display: none; margin: 6px 0 10px 0; color: #555; font-size: 13px;">
   「${marker.customData.content}」
 </div>
@@ -305,6 +418,7 @@ function bindInfoWindow(marker) {
 
 
         infoWindow.open(map, marker);
+        startTimeTicker(marker);
         activeInfoWindow = infoWindow;
     });
     marker.infoWindow = infoWindow;
@@ -386,7 +500,8 @@ function submitResponse(id) {
 
             marker.infoWindow.setContent(`
             <div style="font-family: sans-serif; font-size: 14px; padding: 10px; max-width: 300px;">
-                <p><strong>ご回答ありがとうございます!</strong></p>
+            
+            <p><strong>ご回答ありがとうございます!</strong></p>
                 <div style="margin-top: 6px; font-size: 13px; color: #444;">
                     ✏️ <span style="color: #555;">投稿内容：</span><br>
                     <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
@@ -396,10 +511,12 @@ function submitResponse(id) {
                 ${badgeHtml}
             </div>
         `);
+       
         } else {
             marker.infoWindow.setContent(`
             <div style="font-family: sans-serif; font-size: 14px; padding: 10px;">
-                <p><strong>ご回答ありがとうございます!</strong></p>
+            
+            <p><strong>ご回答ありがとうございます!</strong></p>
                 <div style="margin-top: 6px; font-size: 13px; color: #444;">
                     ✏️ <span style="color: #555;">投稿内容：</span><br>
                     <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
@@ -408,6 +525,7 @@ function submitResponse(id) {
                 </div>
             </div>
         `);
+      
         }
     }
 
@@ -437,6 +555,7 @@ function submitResponse(id) {
                     padding: 10px;
                     max-width: 300px;
                 ">
+                
                     <p><strong>ご回答ありがとうございます!</strong></p>
                     <div style="margin-top: 6px; font-size: 13px; color: #444;">
   ✏️ <span style="color: #555;">投稿内容：</span><br>
@@ -453,7 +572,8 @@ function submitResponse(id) {
     } else {
         marker.infoWindow.setContent(`
                 <div style="font-family: sans-serif; font-size: 14px; padding: 10px;">
-                    <p><strong>ご回答ありがとうございます!</strong></p>
+                
+                <p><strong>ご回答ありがとうございます!</strong></p>
                     <div style="margin-top: 6px; font-size: 13px; color: #444;">
   ✏️ <span style="color: #555;">投稿内容：</span><br>
   <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
@@ -462,6 +582,7 @@ function submitResponse(id) {
 </div>
                 </div>
             `);
+        
     }
     // 弹出气球提示
     showToast('🎉 回答送信完了！ありがとうございます！');
@@ -531,3 +652,4 @@ function haversineDistance(pos1, pos2) {
 }
 
 window.initMap = initMap;
+
