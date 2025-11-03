@@ -54,9 +54,18 @@
             margin-bottom: 4px;
         }
     </style>
-    <script async defer
+    <!-- 1) 聚类库：用 UMD 版本，提供全局 markerClusterer 变量 -->
+    <script defer src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.umd.js"></script>
+
+    <!-- 2) 你的业务代码，里面要有 window.initMap = initMap; -->
+    <script defer src="main.js"></script>
+
+    <!-- 3) 最后加载 Google Maps，并回调 initMap（这时已由 main.js 定义） -->
+    <script defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCX03_MOSrGu8CkY7BxHaIGhJBHM3NDjP8&callback=initMap&libraries=geometry">
         </script>
+
+
 </head>
 
 <body>

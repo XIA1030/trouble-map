@@ -7,6 +7,14 @@ let allMarkers = [];
 let activeInfoWindow = null;
 let selectedMarkers = [];
 let avatarMap = {}; // ID → {name, avatar}
+// === 現在地表示用 ===
+let myPosMarker = null;       // 現在地マーカー
+let myAccuracyCircle = null;  // 位置精度円
+let geoWatchId = null;        // watchPosition のID
+let firstFix = true;          // 最初の測位で地図を寄せる
+let markerCluster = null;     // 🆕 MarkerClusterer 实例
+
+
 
 function initMap() {
 
@@ -20,6 +28,11 @@ function initMap() {
     });
 
     loadAvatars(() => loadDataAndDisplayMarkers(currentPattern, currentCondition));
+    // 🆕 開始測位
+    startGeolocation();
+
+    // 🆕 可選：右下に「現在地」ボタン
+    addLocateControl();
 
 }
 
@@ -68,11 +81,11 @@ function startTimeTicker(marker) {
 }
 // === いいね用工具 ===
 function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 // 点击后切换：未点赞→+1，已点赞→-1
-function toggleLike(id) {
+/*function toggleLike(id) {
   const m = allMarkers.find(mm => mm.customData.id === id);
   if (!m) return;
 
@@ -107,8 +120,121 @@ function toggleLike(id) {
     btn.setAttribute('data-liked', '1');
     btn.title = 'いいねを取消';
   }
+}*/
+
+// === 現在地の追跡を開始 ===
+function startGeolocation() {
+    if (!navigator.geolocation) {
+        console.warn('Geolocation not supported');
+        showToast('⚠️ この端末では現在地を取得できません');
+        return;
+    }
+    if (geoWatchId !== null) return; // 既に開始済みなら何もしない
+
+    geoWatchId = navigator.geolocation.watchPosition(
+        onGeoSuccess,
+        onGeoError,
+        {
+            enableHighAccuracy: true, // できるだけ高精度
+            maximumAge: 5000,         // 5秒までのキャッシュはOK
+            timeout: 20000            // 20秒でタイムアウト
+        }
+    );
 }
 
+// === 測位成功時 ===
+function onGeoSuccess(pos) {
+    const { latitude, longitude, accuracy } = pos.coords;
+    const latLng = new google.maps.LatLng(latitude, longitude);
+
+    // 初回生成
+    if (!myPosMarker) {
+        myPosMarker = new google.maps.Marker({
+            position: latLng,
+            map,
+            clickable: false,
+            zIndex: 9999,
+            // Google Maps のシンボル（青丸＋白フチ）
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: '#1a73e8',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2
+            }
+        });
+
+        myAccuracyCircle = new google.maps.Circle({
+            map,
+            center: latLng,
+            radius: accuracy || 0,
+            strokeColor: '#1a73e8',
+            strokeOpacity: 0.25,
+            strokeWeight: 1,
+            fillColor: '#1a73e8',
+            fillOpacity: 0.08,
+            clickable: false,
+            zIndex: 9998
+        });
+    } else {
+        // 2回目以降は位置と精度だけ更新
+        myPosMarker.setPosition(latLng);
+        if (myAccuracyCircle) {
+            myAccuracyCircle.setCenter(latLng);
+            myAccuracyCircle.setRadius(accuracy || 0);
+        }
+    }
+
+    // 最初の測位で地図を寄せる
+    if (firstFix) {
+        map.panTo(latLng);
+        firstFix = false;
+    }
+}
+
+// === 測位失敗時 ===
+function onGeoError(err) {
+    // 典型コード: 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
+    console.warn('Geolocation error:', err);
+    showToast(`⚠️ 現在地エラー: ${err.message || '取得できませんでした'}`);
+}
+
+// === 現在地の追跡を停止（必要なら呼び出し）===
+function stopGeolocation() {
+    if (geoWatchId !== null) {
+        navigator.geolocation.clearWatch(geoWatchId);
+        geoWatchId = null;
+    }
+    if (myPosMarker) {
+        myPosMarker.setMap(null);
+        myPosMarker = null;
+    }
+    if (myAccuracyCircle) {
+        myAccuracyCircle.setMap(null);
+        myAccuracyCircle = null;
+    }
+    firstFix = true;
+}
+function addLocateControl() {
+    const btn = document.createElement('button');
+    btn.textContent = '現在地';
+    btn.style.cssText = `
+    background:#fff; border:1px solid #ccc; border-radius:6px;
+    padding:6px 10px; margin:10px; cursor:pointer; font-size:12px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.3);
+  `;
+    btn.title = '現在地へ移動';
+    btn.addEventListener('click', () => {
+        if (myPosMarker) {
+            map.panTo(myPosMarker.getPosition());
+        } else {
+            startGeolocation();
+        }
+    });
+    // 右下に配置
+    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(btn);
+}
 
 function loadAvatars(callback) {
     fetch('./avatars/avatar_list.json')
@@ -131,13 +257,14 @@ function loadDataAndDisplayMarkers(pattern, condition) {
                 const iconUrl = getIconForMarker(markerData, condition);
                 const marker = new google.maps.Marker({
                     position: markerData.position,
-                    map: map,
+                    map: null, // 🆕 交给聚类器管理显示/隐藏
                     icon: {
                         url: iconUrl,
                         scaledSize: new google.maps.Size(28, 28),
                     },
                     opacity: 1.0
                 });
+
                 marker.customData = {
                     id: index,
                     type: markerData.type,
@@ -147,13 +274,68 @@ function loadDataAndDisplayMarkers(pattern, condition) {
                     responseText: null,
                     defaultIcon: iconUrl,
                     createdAt: randomPastDate(), // 👈 随机的过去时间（默认 7 天内）
-                    likeCount: randomInt(0, 200),   // 随机 0-200 的「いいね」
-                    likedByMe: false             // 🆕 我是否点过赞（本地会话内）
+                    likeCount: randomInt(0, 200)  // 随机 0-200 的「いいね」
+                    //likedByMe: false             // 🆕 我是否点过赞（本地会话内）
 
                 };
                 bindInfoWindow(marker);
                 allMarkers.push(marker);
             });
+            // 🆕 用所有 markers 创建/刷新聚类器
+            if (markerCluster) {
+                markerCluster.clearMarkers();
+                markerCluster = null;
+            }
+
+            // ——建议参数——
+            // radius: 屏幕像素为单位的聚类半径（40~80常用；调小=更“松”更容易出蓝/黄）
+            // maxZoom: 一直到这个缩放级别仍保持聚类；再放大就完全拆分成单点
+            const radiusPx = 90;
+            const clusterMaxZoom = 21;
+
+            // ——颜色阈值——
+            // 方式A：动态阈值（按数据量自适应，更容易出现蓝/黄）
+            // 例如：小簇=总点数的2%，中簇=总点数的7%（下限分别不低于3 / T1+1）
+            const total = allMarkers.length;
+            const T1 = Math.max(3, Math.round(total * 0.02)); // 蓝色上限
+            const T2 = Math.max(T1 + 1, Math.round(total * 0.07)); // 黄色上限
+
+            // 如果你更喜欢固定阈值，注释掉上面的 T1/T2，改用下面两行：
+            // const T1 = 5;   // <5 蓝
+            // const T2 = 15;  // <15 黄，>=15 红
+
+            markerCluster = new markerClusterer.MarkerClusterer({
+                map: map,
+                markers: allMarkers,
+                algorithm: new markerClusterer.SuperClusterAlgorithm({
+                    radius: radiusPx,
+                    maxZoom: clusterMaxZoom
+                }),
+                renderer: {
+                    render: ({ count, position }) => {
+                        const color = count < T1 ? '#4285F4'      // 蓝：小簇
+                            : count < T2 ? '#F4B400'      // 黄：中簇
+                                : '#DB4437';                  // 红：大簇
+                        const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+          <circle cx="20" cy="20" r="18" fill="${color}" fill-opacity="0.85"
+                  stroke="white" stroke-width="2" />
+          <text x="20" y="25" text-anchor="middle" font-size="14"
+                font-family="sans-serif" fill="white" font-weight="700">${count}</text>
+        </svg>`;
+                        return new google.maps.Marker({
+                            position,
+                            icon: {
+                                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+                                scaledSize: new google.maps.Size(40, 40)
+                            },
+                            zIndex: Number.MAX_SAFE_INTEGER
+                        });
+                    }
+                }
+            });
+
+
         });
 }
 
@@ -172,10 +354,17 @@ function getIconForMarker(markerData, condition, plain = false, highlight = fals
 }
 
 function clearMarkers() {
+    // 🆕 先清空聚类
+    if (markerCluster) {
+        markerCluster.clearMarkers();
+        markerCluster = null;
+    }
+    // 再清空原 markers
     allMarkers.forEach(marker => marker.setMap(null));
     allMarkers = [];
     selectedMarkers = [];
 }
+
 
 function bindInfoWindow(marker) {
     const infoWindow = new google.maps.InfoWindow();
@@ -209,25 +398,25 @@ function bindInfoWindow(marker) {
         const timeBadge = `
       <span id="time_${marker.customData.id}" 
             style="color:#888; font-size:12px; white-space:nowrap;">${timeStr}</span>`;
-        const liked = !!marker.customData.likedByMe;
-const likeBadge = `
-  <button
-    id="likeBtn_${marker.customData.id}"
-    onclick="toggleLike(${marker.customData.id})"
+        const likeBadge = `
+  <span
+    id="likeWrap_${marker.customData.id}"
     style="
       display:inline-flex; align-items:center; gap:4px;
-      border:none; ${liked ? 'background:#ffd6dc; color:#b71852;' : 'background:#ffeef0; color:#d6336c;'}
-      padding:2px 8px; border-radius:12px; font-size:12px; cursor:pointer;
+      background:#ffeef0; color:#d6336c;
+      padding:2px 8px; border-radius:12px; font-size:12px;
+      user-select:none; cursor:default;
     "
-    data-liked="${liked ? '1' : '0'}"
-    title="${liked ? 'いいねを取消' : 'いいね！'}"
-  ><span id="heart_${marker.customData.id}">${liked ? '❤️' : '🤍'}</span>
-   <span id="like_${marker.customData.id}">${marker.customData.likeCount}</span>
-  </button>`;
+    role="status" aria-label="いいね数"
+  >
+    <span aria-hidden="true">❤️</span>
+    <span id="like_${marker.customData.id}">${marker.customData.likeCount}</span>
+  </span>`;
 
 
-        
-            if (!marker.customData.answered) {
+
+
+        if (!marker.customData.answered) {
             let contentHtml = `
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
   <div style="display:flex; align-items:center; gap:10px;">
@@ -511,7 +700,7 @@ function submitResponse(id) {
                 ${badgeHtml}
             </div>
         `);
-       
+
         } else {
             marker.infoWindow.setContent(`
             <div style="font-family: sans-serif; font-size: 14px; padding: 10px;">
@@ -525,7 +714,7 @@ function submitResponse(id) {
                 </div>
             </div>
         `);
-      
+
         }
     }
 
@@ -582,7 +771,7 @@ function submitResponse(id) {
 </div>
                 </div>
             `);
-        
+
     }
     // 弹出气球提示
     showToast('🎉 回答送信完了！ありがとうございます！');
@@ -652,4 +841,3 @@ function haversineDistance(pos1, pos2) {
 }
 
 window.initMap = initMap;
-
