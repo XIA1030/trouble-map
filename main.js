@@ -12,7 +12,10 @@ let myPosMarker = null;       // 現在地マーカー
 let myAccuracyCircle = null;  // 位置精度円
 let geoWatchId = null;        // watchPosition のID
 let firstFix = true;          // 最初の測位で地図を寄せる
-let markerCluster = null;     // 🆕 MarkerClusterer 实例
+// 👇 逻辑聚类用的全局表
+let clusters = [];                 // [{id: 0, type: 'xxx', members: [marker, ...]}, ...]
+let markerIdToClusterId = {};      // { marker.customData.id : clusterId }
+
 
 
 
@@ -79,7 +82,7 @@ function startTimeTicker(marker) {
     update();
     marker._timeTimer = setInterval(update, 60 * 1000);
 }
-// === いいね用工具 ===
+/* === いいね用工具 ===
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -252,12 +255,13 @@ function loadDataAndDisplayMarkers(pattern, condition) {
     fetch(`./data/${pattern}.json`)
         .then(res => res.json())
         .then(data => {
-            clearMarkers();
+            clearMarkers();  // 清空旧的 marker 和聚类
+
             data.forEach((markerData, index) => {
                 const iconUrl = getIconForMarker(markerData, condition);
                 const marker = new google.maps.Marker({
                     position: markerData.position,
-                    map: null, // 🆕 交给聚类器管理显示/隐藏
+                    map: map,  // 直接画在地图上
                     icon: {
                         url: iconUrl,
                         scaledSize: new google.maps.Size(28, 28),
@@ -273,71 +277,21 @@ function loadDataAndDisplayMarkers(pattern, condition) {
                     answeredByUser: false,
                     responseText: null,
                     defaultIcon: iconUrl,
-                    createdAt: randomPastDate(), // 👈 随机的过去时间（默认 7 天内）
-                    likeCount: randomInt(0, 200)  // 随机 0-200 的「いいね」
-                    //likedByMe: false             // 🆕 我是否点过赞（本地会话内）
-
+                    createdAt: randomPastDate(), // 随机的过去时间（默认 7 天内）
+                    //likeCount: randomInt(0, 200)  // 随机 0-200 的「いいね」
+                    // likedByMe: false
                 };
+
                 bindInfoWindow(marker);
                 allMarkers.push(marker);
             });
-            // 🆕 用所有 markers 创建/刷新聚类器
-            if (markerCluster) {
-                markerCluster.clearMarkers();
-                markerCluster = null;
-            }
 
-            // ——建议参数——
-            // radius: 屏幕像素为单位的聚类半径（40~80常用；调小=更“松”更容易出蓝/黄）
-            // maxZoom: 一直到这个缩放级别仍保持聚类；再放大就完全拆分成单点
-            const radiusPx = 90;
-            const clusterMaxZoom = 21;
-
-            // ——颜色阈值——
-            // 方式A：动态阈值（按数据量自适应，更容易出现蓝/黄）
-            // 例如：小簇=总点数的2%，中簇=总点数的7%（下限分别不低于3 / T1+1）
-            const total = allMarkers.length;
-            const T1 = Math.max(3, Math.round(total * 0.02)); // 蓝色上限
-            const T2 = Math.max(T1 + 1, Math.round(total * 0.07)); // 黄色上限
-
-            // 如果你更喜欢固定阈值，注释掉上面的 T1/T2，改用下面两行：
-            // const T1 = 5;   // <5 蓝
-            // const T2 = 15;  // <15 黄，>=15 红
-
-            markerCluster = new markerClusterer.MarkerClusterer({
-                map: map,
-                markers: allMarkers,
-                algorithm: new markerClusterer.SuperClusterAlgorithm({
-                    radius: radiusPx,
-                    maxZoom: clusterMaxZoom
-                }),
-                renderer: {
-                    render: ({ count, position }) => {
-                        const color = count < T1 ? '#4285F4'      // 蓝：小簇
-                            : count < T2 ? '#F4B400'      // 黄：中簇
-                                : '#DB4437';                  // 红：大簇
-                        const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
-          <circle cx="20" cy="20" r="18" fill="${color}" fill-opacity="0.85"
-                  stroke="white" stroke-width="2" />
-          <text x="20" y="25" text-anchor="middle" font-size="14"
-                font-family="sans-serif" fill="white" font-weight="700">${count}</text>
-        </svg>`;
-                        return new google.maps.Marker({
-                            position,
-                            icon: {
-                                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-                                scaledSize: new google.maps.Size(40, 40)
-                            },
-                            zIndex: Number.MAX_SAFE_INTEGER
-                        });
-                    }
-                }
-            });
-
-
+            // ⭐⭐⭐ 就是这里：forEach 全部结束后，调用一次逻辑聚类 ⭐⭐⭐
+            // 用“同类型 + 20m 连通”的规则给所有 marker 分簇。
+            buildClusters(20);
         });
 }
+
 
 function getIconForMarker(markerData, condition, plain = false, highlight = false) {
     if (condition === 'noHint') {
@@ -354,15 +308,74 @@ function getIconForMarker(markerData, condition, plain = false, highlight = fals
 }
 
 function clearMarkers() {
-    // 🆕 先清空聚类
-    if (markerCluster) {
-        markerCluster.clearMarkers();
-        markerCluster = null;
-    }
-    // 再清空原 markers
+    // 清掉地图上的 marker
     allMarkers.forEach(marker => marker.setMap(null));
     allMarkers = [];
     selectedMarkers = [];
+
+    // 👇 同时把聚类结果也清掉
+    clusters = [];
+    markerIdToClusterId = {};
+}
+
+// === 逻辑聚类：同类型 + 半径内“连通”的都划到同一簇 ===
+function buildClusters(radiusMeters) {
+    clusters = [];
+    markerIdToClusterId = {};
+
+    // 1) 先按 type 分桶
+    const bucketByType = {};
+    for (const m of allMarkers) {
+        const t = m.customData.type;
+        if (!bucketByType[t]) bucketByType[t] = [];
+        bucketByType[t].push(m);
+    }
+
+    // 2) 对每种 type 做“连通分量”搜索
+    let nextClusterId = 0;
+    for (const [type, arr] of Object.entries(bucketByType)) {
+        const visited = new Set();
+
+        for (let i = 0; i < arr.length; i++) {
+            const start = arr[i];
+            if (visited.has(start)) continue;
+
+            // 开始一个新簇
+            const cid = nextClusterId++;
+            const members = [];
+            const q = [start];
+            visited.add(start);
+
+            while (q.length) {
+                const cur = q.pop();
+                members.push(cur);
+
+                // 扫描这种 type 里的其它点
+                for (const nb of arr) {
+                    if (visited.has(nb)) continue;
+                    const d = haversineDistance(cur.getPosition(), nb.getPosition());
+                    if (d <= radiusMeters) {
+                        visited.add(nb);
+                        q.push(nb);
+                    }
+                }
+            }
+
+            // 保存结果
+            clusters.push({ id: cid, type, members });
+            for (const m of members) {
+                markerIdToClusterId[m.customData.id] = cid;
+            }
+        }
+    }
+}
+
+// === 根据 marker 取它所在簇的所有成员 ===
+function getClusterMembers(marker, includeSelf = true) {
+    const cid = markerIdToClusterId[marker.customData.id];
+    if (cid === undefined) return [];
+    const members = clusters[cid]?.members || [];
+    return includeSelf ? members : members.filter(m => m !== marker);
 }
 
 
@@ -382,23 +395,25 @@ function bindInfoWindow(marker) {
         selectedMarkers = [];
 
         if (currentCondition === 'similarPlusSolved') {
-            const selected = getNearbyMarkers(marker.getPosition(), marker.customData.type, 20);
-            selected.forEach(m => {
-                m.setIcon({
-                    url: getIconForMarker(m.customData, currentCondition, false, true),
-                    scaledSize: new google.maps.Size(28, 28)
-                });
-            });
-            selectedMarkers = selected;
-        }
+    // 👇 现在不再用“20m 圆形邻域”，改成“所在簇的全体成员”
+    const selected = getClusterMembers(marker, true);
+    selected.forEach(m => {
+        m.setIcon({
+            url: getIconForMarker(m.customData, currentCondition, false, true),
+            scaledSize: new google.maps.Size(28, 28)
+        });
+    });
+    selectedMarkers = selected;
+}
 
-        const nearby = getNearbyMarkers(marker.getPosition(), marker.customData.type, 20);
+
+        const group = getClusterMembers(marker, true);
         const avatar = avatarMap[marker.customData.id % Object.keys(avatarMap).length];
         const timeStr = timeAgo(marker.customData.createdAt);
         const timeBadge = `
       <span id="time_${marker.customData.id}" 
             style="color:#888; font-size:12px; white-space:nowrap;">${timeStr}</span>`;
-        const likeBadge = `
+        /*const likeBadge = `
   <span
     id="likeWrap_${marker.customData.id}"
     style="
@@ -411,7 +426,7 @@ function bindInfoWindow(marker) {
   >
     <span aria-hidden="true">❤️</span>
     <span id="like_${marker.customData.id}">${marker.customData.likeCount}</span>
-  </span>`;
+  </span>`;*/
 
 
 
@@ -425,7 +440,7 @@ function bindInfoWindow(marker) {
   </div>
   <div style="display:flex; align-items:center; gap:8px;">
     ${timeBadge}
-    ${likeBadge}
+    
   </div>
 </div>
 
@@ -433,7 +448,7 @@ function bindInfoWindow(marker) {
                 <p style="margin-top:5px;">「${marker.customData.content}」</p>`;
 
             if (currentCondition === 'similarPlusSolved') {
-                const count = nearby.length;
+                const count = group.length;
                 const peopleBadge = `
     <div style="
         font-size: 13px;
@@ -449,7 +464,7 @@ function bindInfoWindow(marker) {
             font-weight: bold;
             font-size: 13px;
             margin-right: 4px;
-        ">${count}人</span>が20メートル圏内に同じ悩みを投稿しています！
+        ">${count}人</span>がこのエリアで同じ種類の困りごとを投稿しています！
     </div>
 `;
 
@@ -514,7 +529,7 @@ function bindInfoWindow(marker) {
         } else {
             let badgeHtml = '';
             if (currentCondition === 'similarPlusSolved' && marker.customData.answeredByUser) {
-                const helpCount = getNearbyMarkers(marker.getPosition(), marker.customData.type, 20).length;
+                const helpCount = getClusterMembers(marker, true).length;
                 badgeHtml = `
         <div style="
             background: #e6f5ea;
@@ -540,7 +555,7 @@ function bindInfoWindow(marker) {
 
   <div style="display:flex; align-items:center; gap:8px;">
     ${timeBadge}
-    ${likeBadge}
+    
     <button id="toggleBtn_${marker.customData.id}" onclick="toggleQuestion(${marker.customData.id})"
       style="
         font-size: 12px;
@@ -655,7 +670,8 @@ function submitResponse(id) {
         return;
     }
 
-    const sameTypeNearby = getNearbyMarkers(marker.getPosition(), marker.customData.type, 20);
+    const sameTypeNearby = getClusterMembers(marker, true);
+
 
     sameTypeNearby.forEach(m => {
         m.customData.answered = true;
@@ -822,12 +838,7 @@ function saveResponse(id) {
 }
 
 
-function getNearbyMarkers(center, type, radiusMeters = 10) {
-    return allMarkers.filter(m => {
-        return m.customData.type === type &&
-            haversineDistance(center, m.getPosition()) <= radiusMeters;
-    });
-}
+
 
 function haversineDistance(pos1, pos2) {
     const R = 6371e3;
