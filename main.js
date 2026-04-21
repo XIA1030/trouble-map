@@ -395,16 +395,16 @@ function bindInfoWindow(marker) {
         selectedMarkers = [];
 
         if (currentCondition === 'similarPlusSolved') {
-    // 👇 现在不再用“20m 圆形邻域”，改成“所在簇的全体成员”
-    const selected = getClusterMembers(marker, true);
-    selected.forEach(m => {
-        m.setIcon({
-            url: getIconForMarker(m.customData, currentCondition, false, true),
-            scaledSize: new google.maps.Size(28, 28)
-        });
-    });
-    selectedMarkers = selected;
-}
+            // 👇 现在不再用“20m 圆形邻域”，改成“所在簇的全体成员”
+            const selected = getClusterMembers(marker, true);
+            selected.forEach(m => {
+                m.setIcon({
+                    url: getIconForMarker(m.customData, currentCondition, false, true),
+                    scaledSize: new google.maps.Size(28, 28)
+                });
+            });
+            selectedMarkers = selected;
+        }
 
 
         const group = getClusterMembers(marker, true);
@@ -412,7 +412,7 @@ function bindInfoWindow(marker) {
         const timeStr = timeAgo(marker.customData.createdAt);
         const timeBadge = `
       <span id="time_${marker.customData.id}" 
-            style="color:#888; font-size:12px; white-space:nowrap;">${timeStr}</span>`;
+            style="color:#888; font-size:12px;">${timeStr}</span>`;
         /*const likeBadge = `
   <span
     id="likeWrap_${marker.customData.id}"
@@ -433,19 +433,19 @@ function bindInfoWindow(marker) {
 
         if (!marker.customData.answered) {
             let contentHtml = `
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;">
   <div style="display:flex; align-items:center; gap:10px;">
     <img src="${avatar.avatar}" width="32" height="32" style="border-radius:50%;">
     <strong>${avatar.name} さん</strong>
   </div>
-  <div style="display:flex; align-items:center; gap:8px;">
+  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
     ${timeBadge}
     
   </div>
 </div>
 
 
-                <p style="margin-top:5px;">「${marker.customData.content}」</p>`;
+                <p style="margin-top:5px; white-space:normal; overflow-wrap:break-word; word-break:break-word;">「${marker.customData.content}」</p>`;
 
             if (currentCondition === 'similarPlusSolved') {
                 const count = group.length;
@@ -510,8 +510,8 @@ function bindInfoWindow(marker) {
 
             infoWindow.setContent(`
     <div style="
-      width: 90vw;
-      max-width: 300px;
+      width: 260px;
+      max-width: calc(100vw - 40px);
       box-sizing: border-box;
       padding: 14px;
       border-radius: 14px;
@@ -520,6 +520,9 @@ function bindInfoWindow(marker) {
       font-size: 14px;
       line-height: 1.5;
       background: white;
+      overflow: hidden;
+      overflow-wrap: break-word;
+      word-break: break-word;
     ">
       ${contentHtml}
     </div>
@@ -547,13 +550,13 @@ function bindInfoWindow(marker) {
 
 
             const contentHtml = `
-        <div style="display:flex; align-items:center; gap:10px; justify-content:space-between;">
+        <div style="display:flex; align-items:flex-start; gap:10px; justify-content:space-between; flex-wrap:wrap;">
   <div style="display:flex; align-items:center; gap:10px;">
     <img src="${avatar.avatar}" width="32" height="32" style="border-radius:50%;">
     <strong>${avatar.name} さん</strong>
   </div>
 
-  <div style="display:flex; align-items:center; gap:8px;">
+  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
     ${timeBadge}
     
     <button id="toggleBtn_${marker.customData.id}" onclick="toggleQuestion(${marker.customData.id})"
@@ -569,7 +572,7 @@ function bindInfoWindow(marker) {
   </div>
 </div>
 
-<div id="question_${marker.customData.id}" style="display: none; margin: 6px 0 10px 0; color: #555; font-size: 13px;">
+<div style="margin: 6px 0 10px 0; color: #555; font-size: 13px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
   「${marker.customData.content}」
 </div>
 
@@ -586,12 +589,12 @@ function bindInfoWindow(marker) {
                 style="font-size: 12px; padding: 2px 8px; border: none; background-color: #eee; border-radius: 12px; cursor: pointer;">編集</button>
         </div>
 
-        <div id="responseView_${marker.customData.id}" style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
+        <div id="responseView_${marker.customData.id}" style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
             ${marker.customData.responseText}
         </div>
 
         <div id="responseEdit_${marker.customData.id}" style="display: none; margin-top: 6px;">
-            <textarea id="editInput_${marker.customData.id}" style="width: 100%; font-size: 13px; padding: 6px; border-radius: 6px; border: 1px solid #ccc;">${marker.customData.responseText}</textarea>
+            <textarea id="editInput_${marker.customData.id}" style="width: 100%; font-size: 13px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box;">${marker.customData.responseText}</textarea>
             <div style="text-align: right; margin-top: 4px;">
                 <button onclick="cancelEdit(${marker.customData.id})"
                     style="font-size: 12px; padding: 4px 10px; border: none; background-color: #eee; color: #333; border-radius: 14px; cursor: pointer; margin-right: 6px;">キャンセル</button>
@@ -605,8 +608,8 @@ function bindInfoWindow(marker) {
 
             infoWindow.setContent(`
         <div style="
-            width: 90vw;
-            max-width: 300px;
+            width: 260px;
+            max-width: calc(100vw - 40px);
             box-sizing: border-box;
             padding: 10px 14px;
             border-radius: 12px;
@@ -614,6 +617,9 @@ function bindInfoWindow(marker) {
             font-family: sans-serif;
             font-size: 14px;
             background: white;
+            overflow: hidden;
+            overflow-wrap: break-word;
+            word-break: break-word;
         ">
             ${contentHtml}
         </div>
@@ -704,12 +710,12 @@ function submitResponse(id) {
         `;
 
             marker.infoWindow.setContent(`
-            <div style="font-family: sans-serif; font-size: 14px; padding: 10px; max-width: 300px;">
+            <div style="width: 260px; max-width: calc(100vw - 40px); font-family: sans-serif; font-size: 14px; padding: 10px; box-sizing: border-box; overflow: hidden; overflow-wrap: break-word; word-break: break-word;">
             
             <p><strong>ご回答ありがとうございます!</strong></p>
                 <div style="margin-top: 6px; font-size: 13px; color: #444;">
                     ✏️ <span style="color: #555;">投稿内容：</span><br>
-                    <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
+                    <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
                         ${marker.customData.responseText}
                     </div>
                 </div>
@@ -719,12 +725,12 @@ function submitResponse(id) {
 
         } else {
             marker.infoWindow.setContent(`
-            <div style="font-family: sans-serif; font-size: 14px; padding: 10px;">
+            <div style="width: 260px; max-width: calc(100vw - 40px); font-family: sans-serif; font-size: 14px; padding: 10px; box-sizing: border-box; overflow: hidden; overflow-wrap: break-word; word-break: break-word;">
             
             <p><strong>ご回答ありがとうございます!</strong></p>
                 <div style="margin-top: 6px; font-size: 13px; color: #444;">
                     ✏️ <span style="color: #555;">投稿内容：</span><br>
-                    <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
+                    <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
                         ${marker.customData.responseText}
                     </div>
                 </div>
@@ -755,16 +761,21 @@ function submitResponse(id) {
 
         marker.infoWindow.setContent(`
                 <div style="
+                    width: 260px;
+                    max-width: calc(100vw - 40px);
                     font-family: sans-serif;
                     font-size: 14px;
                     padding: 10px;
-                    max-width: 300px;
+                    box-sizing: border-box;
+                    overflow: hidden;
+                    overflow-wrap: break-word;
+                    word-break: break-word;
                 ">
                 
                     <p><strong>ご回答ありがとうございます!</strong></p>
                     <div style="margin-top: 6px; font-size: 13px; color: #444;">
   ✏️ <span style="color: #555;">投稿内容：</span><br>
-  <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
+  <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
     ${marker.customData.responseText}
   </div>
 </div>
@@ -776,12 +787,12 @@ function submitResponse(id) {
 
     } else {
         marker.infoWindow.setContent(`
-                <div style="font-family: sans-serif; font-size: 14px; padding: 10px;">
+                <div style="width: 260px; max-width: calc(100vw - 40px); font-family: sans-serif; font-size: 14px; padding: 10px; box-sizing: border-box; overflow: hidden; overflow-wrap: break-word; word-break: break-word;">
                 
                 <p><strong>ご回答ありがとうございます!</strong></p>
                     <div style="margin-top: 6px; font-size: 13px; color: #444;">
   ✏️ <span style="color: #555;">投稿内容：</span><br>
-  <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
+  <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
     ${marker.customData.responseText}
   </div>
 </div>
