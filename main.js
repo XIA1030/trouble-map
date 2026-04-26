@@ -36,17 +36,24 @@ let firstFix = true;          // 最初の測位で地図を寄せる
 let clusters = [];                 // [{id: 0, type: 'xxx', members: [marker, ...]}, ...]
 let markerIdToClusterId = {};      // { marker.customData.id : clusterId }
 
-let userId = localStorage.getItem("experiment_user_id");
+let userName = localStorage.getItem("user_name");
+let sessionId = Date.now();
 
-if (!userId) {
-    userId = "U_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-    localStorage.setItem("experiment_user_id", userId);
+if (!userName) {
+    userName = prompt("名前を入力してください");
+
+    if (!userName || userName.trim() === "") {
+        userName = "匿名_" + Math.floor(Math.random() * 1000);
+    }
+
+    localStorage.setItem("user_name", userName);
 }
 
 async function logEvent(eventType, postId = null, extraInfo = {}) {
     try {
         await addDoc(collection(db, "user_events"), {
-            user_id: userId,
+            user_name: userName,
+            session_id: sessionId,  
             event_type: eventType,
             post_id: postId,
             condition: currentCondition,
@@ -845,7 +852,8 @@ async function submitResponse(id) {
         return;
     }
     await addDoc(collection(db, "answers"), {
-        user_id: userId,
+        user_name: userName,
+        session_id: sessionId,
         post_id: id,
         answer_text: responseText,
         answer_length: responseText.length,
