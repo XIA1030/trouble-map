@@ -36,29 +36,23 @@ let firstFix = true;          // 最初の測位で地図を寄せる
 let clusters = [];                 // [{id: 0, type: 'xxx', members: [marker, ...]}, ...]
 let markerIdToClusterId = {};      // { marker.customData.id : clusterId }
 
-let userName = localStorage.getItem("user_name");
-let experimentRound = localStorage.getItem("experiment_round");
+let userName = prompt("ユーザーIDを入力してください");
 
-if (!experimentRound) {
+if (!userName || userName.trim() === "") {
+    userName = "匿名";
+}
+
+let experimentRound = "";
+
+while (!["1", "2", "3"].includes(experimentRound)) {
     experimentRound = prompt("実験の回数を入力してください（1 / 2 / 3）");
 
-    if (!experimentRound || !["1", "2", "3"].includes(experimentRound)) {
-        experimentRound = "1"; // 默认
+    if (experimentRound === null) {
+        alert("1 / 2 / 3 のいずれかを入力してください");
     }
-
-    localStorage.setItem("experiment_round", experimentRound);
 }
+
 let sessionId = userName + "_" + experimentRound;
-
-if (!userName) {
-    userName = prompt("名前を入力してください");
-
-    if (!userName || userName.trim() === "") {
-        userName = "匿名_" + Math.floor(Math.random() * 1000);
-    }
-
-    localStorage.setItem("user_name", userName);
-}
 
 async function logEvent(eventType, postId = null, extraInfo = {}) {
     try {
