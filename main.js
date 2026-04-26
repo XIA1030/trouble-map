@@ -1,4 +1,24 @@
-// main.js - 發問者表示機能（固定ユーザー名とアイコン）追加
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyC5S0_zRjNF_Oz65ch3IepPBBa6BUuYMuw",
+    authDomain: "trouble-map-84582.firebaseapp.com",
+    projectId: "trouble-map-84582",
+    storageBucket: "trouble-map-84582.firebasestorage.app",
+    messagingSenderId: "717092321622",
+    appId: "1:717092321622:web:5bf196a300084161973ef7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// main.js - 発問者表示機能（固定ユーザー名とアイコン）追加
 
 let map;
 let currentPattern = 'pattern1';
@@ -16,11 +36,34 @@ let firstFix = true;          // 最初の測位で地図を寄せる
 let clusters = [];                 // [{id: 0, type: 'xxx', members: [marker, ...]}, ...]
 let markerIdToClusterId = {};      // { marker.customData.id : clusterId }
 
+let userId = localStorage.getItem("experiment_user_id");
 
+if (!userId) {
+    userId = "U_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    localStorage.setItem("experiment_user_id", userId);
+}
+
+async function logEvent(eventType, postId = null, extraInfo = {}) {
+    try {
+        await addDoc(collection(db, "user_events"), {
+            user_id: userId,
+            event_type: eventType,
+            post_id: postId,
+            condition: currentCondition,
+            pattern: currentPattern,
+            timestamp_client: new Date().toISOString(),
+            timestamp_server: serverTimestamp(),
+            extra_info: extraInfo,
+            user_agent: navigator.userAgent
+        });
+    } catch (error) {
+        console.error("ログ保存エラー:", error);
+    }
+}
 
 
 function initMap() {
-
+    logEvent("page_start");
     map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 34.8102, lng: 135.5616 },
         zoom: 18,
@@ -286,9 +329,8 @@ function loadDataAndDisplayMarkers(pattern, condition) {
                 allMarkers.push(marker);
             });
 
-            // ⭐⭐⭐ 就是这里：forEach 全部结束后，调用一次逻辑聚类 ⭐⭐⭐
-            // 用“同类型 + 20m 连通”的规则给所有 marker 分簇。
-            buildClusters(20);
+
+            buildClustersKMeans();
         });
 }
 
@@ -318,56 +360,177 @@ function clearMarkers() {
     markerIdToClusterId = {};
 }
 
-// === 逻辑聚类：同类型 + 半径内“连通”的都划到同一簇 ===
-function buildClusters(radiusMeters) {
+// === k-means 聚类：同じ type ごとにクラスタリング ===
+function buildClustersKMeans() {
     clusters = [];
     markerIdToClusterId = {};
 
-    // 1) 先按 type 分桶
     const bucketByType = {};
+
+    // 1. type ごとに分ける
     for (const m of allMarkers) {
         const t = m.customData.type;
         if (!bucketByType[t]) bucketByType[t] = [];
         bucketByType[t].push(m);
     }
 
-    // 2) 对每种 type 做“连通分量”搜索
     let nextClusterId = 0;
-    for (const [type, arr] of Object.entries(bucketByType)) {
-        const visited = new Set();
 
-        for (let i = 0; i < arr.length; i++) {
-            const start = arr[i];
-            if (visited.has(start)) continue;
+    // 2. 各 type 内で k-means
+    for (const [type, markers] of Object.entries(bucketByType)) {
+        const n = markers.length;
 
-            // 开始一个新簇
+        if (n === 0) continue;
+
+        // 点数が少ない場合は1クラスタ
+        const k = decideK(n);
+
+        const result = kmeansMarkers(markers, k);
+
+        result.forEach(members => {
             const cid = nextClusterId++;
-            const members = [];
-            const q = [start];
-            visited.add(start);
 
-            while (q.length) {
-                const cur = q.pop();
-                members.push(cur);
+            clusters.push({
+                id: cid,
+                type,
+                members
+            });
 
-                // 扫描这种 type 里的其它点
-                for (const nb of arr) {
-                    if (visited.has(nb)) continue;
-                    const d = haversineDistance(cur.getPosition(), nb.getPosition());
-                    if (d <= radiusMeters) {
-                        visited.add(nb);
-                        q.push(nb);
-                    }
-                }
-            }
-
-            // 保存结果
-            clusters.push({ id: cid, type, members });
-            for (const m of members) {
+            members.forEach(m => {
                 markerIdToClusterId[m.customData.id] = cid;
-            }
-        }
+            });
+        });
     }
+
+    console.log("k-means clusters:", clusters);
+}
+
+// === クラスタ数 k を決める ===
+// 必要に応じて調整してOK
+function decideK(n) {
+    if (n <= 10) return 1;
+    if (n <= 15) return 2;
+    if (n <= 20) return 3;
+    return Math.ceil(Math.sqrt(n));
+}
+
+
+// === marker 配列に対する k-means ===
+function kmeansMarkers(markers, k, maxIter = 100) {
+    // 緯度経度を数値データに変換
+    const points = markers.map(m => {
+        const pos = m.getPosition();
+        return {
+            marker: m,
+            lat: pos.lat(),
+            lng: pos.lng()
+        };
+    });
+
+    // 初期重心をランダムに選ぶ
+    let centroids = initializeCentroids(points, k);
+
+    let assignments = new Array(points.length).fill(-1);
+
+    for (let iter = 0; iter < maxIter; iter++) {
+        let changed = false;
+
+        // 1. 各点を一番近い重心に割り当てる
+        points.forEach((p, i) => {
+            let bestCluster = 0;
+            let bestDist = Infinity;
+
+            centroids.forEach((c, ci) => {
+                const d = distanceLatLng(p.lat, p.lng, c.lat, c.lng);
+                if (d < bestDist) {
+                    bestDist = d;
+                    bestCluster = ci;
+                }
+            });
+
+            if (assignments[i] !== bestCluster) {
+                assignments[i] = bestCluster;
+                changed = true;
+            }
+        });
+
+        // 変化がなければ終了
+        if (!changed) break;
+
+        // 2. 重心を更新
+        centroids = updateCentroids(points, assignments, k);
+    }
+
+    // 3. 結果を members 配列にする
+    const groups = Array.from({ length: k }, () => []);
+
+    points.forEach((p, i) => {
+        groups[assignments[i]].push(p.marker);
+    });
+
+    // 空クラスタを除外
+    return groups.filter(g => g.length > 0);
+}
+
+
+// === 初期重心を選ぶ ===
+function initializeCentroids(points, k) {
+    const shuffled = [...points].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, k).map(p => ({
+        lat: p.lat,
+        lng: p.lng
+    }));
+}
+
+
+// === 重心更新 ===
+function updateCentroids(points, assignments, k) {
+    const sums = Array.from({ length: k }, () => ({
+        lat: 0,
+        lng: 0,
+        count: 0
+    }));
+
+    points.forEach((p, i) => {
+        const clusterId = assignments[i];
+        sums[clusterId].lat += p.lat;
+        sums[clusterId].lng += p.lng;
+        sums[clusterId].count += 1;
+    });
+
+    return sums.map((s, i) => {
+        if (s.count === 0) {
+            // 空クラスタ対策：ランダムな点を重心にする
+            const randomPoint = points[Math.floor(Math.random() * points.length)];
+            return {
+                lat: randomPoint.lat,
+                lng: randomPoint.lng
+            };
+        }
+
+        return {
+            lat: s.lat / s.count,
+            lng: s.lng / s.count
+        };
+    });
+}
+
+
+// === 緯度経度間の距離 ===
+function distanceLatLng(lat1, lng1, lat2, lng2) {
+    const R = 6371e3;
+    const toRad = x => x * Math.PI / 180;
+
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLng / 2) ** 2;
+
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 // === 根据 marker 取它所在簇的所有成员 ===
@@ -384,6 +547,12 @@ function bindInfoWindow(marker) {
 
 
     marker.addListener("click", () => {
+        logEvent("click_marker", marker.customData.id, {
+            type: marker.customData.type,
+            content: marker.customData.content,
+            answered: marker.customData.answered
+        });
+
         if (activeInfoWindow) activeInfoWindow.close();
 
         selectedMarkers.forEach(m => {
@@ -667,7 +836,7 @@ function showToast(message) {
 }
 
 
-function submitResponse(id) {
+async function submitResponse(id) {
     const marker = allMarkers.find(m => m.customData.id === id);
     const input = document.getElementById(`response_${id}`);
     const responseText = input.value.trim();
@@ -675,7 +844,20 @@ function submitResponse(id) {
         showToast('⚠️ 内容を入力してください！');
         return;
     }
+    await addDoc(collection(db, "answers"), {
+        user_id: userId,
+        post_id: id,
+        answer_text: responseText,
+        answer_length: responseText.length,
+        condition: currentCondition,
+        pattern: currentPattern,
+        timestamp_client: new Date().toISOString(),
+        timestamp_server: serverTimestamp()
+    });
 
+    logEvent("submit_answer", id, {
+        answer_length: responseText.length
+    });
     const sameTypeNearby = getClusterMembers(marker, true);
 
 
@@ -863,3 +1045,10 @@ function haversineDistance(pos1, pos2) {
 }
 
 window.initMap = initMap;
+window.switchPattern = switchPattern;
+window.switchCondition = switchCondition;
+window.submitResponse = submitResponse;
+window.toggleQuestion = toggleQuestion;
+window.editResponse = editResponse;
+window.cancelEdit = cancelEdit;
+window.saveResponse = saveResponse;
