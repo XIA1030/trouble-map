@@ -37,7 +37,18 @@ let clusters = [];                 // [{id: 0, type: 'xxx', members: [marker, ..
 let markerIdToClusterId = {};      // { marker.customData.id : clusterId }
 
 let userName = localStorage.getItem("user_name");
-let sessionId = Date.now();
+let experimentRound = localStorage.getItem("experiment_round");
+
+if (!experimentRound) {
+    experimentRound = prompt("実験の回数を入力してください（1 / 2 / 3）");
+
+    if (!experimentRound || !["1", "2", "3"].includes(experimentRound)) {
+        experimentRound = "1"; // 默认
+    }
+
+    localStorage.setItem("experiment_round", experimentRound);
+}
+let sessionId = userName + "_" + experimentRound;
 
 if (!userName) {
     userName = prompt("名前を入力してください");
@@ -52,16 +63,16 @@ if (!userName) {
 async function logEvent(eventType, postId = null, extraInfo = {}) {
     try {
         await addDoc(collection(db, "user_events"), {
-            user_name: userName,
-            session_id: sessionId,  
-            event_type: eventType,
-            post_id: postId,
-            condition: currentCondition,
-            pattern: currentPattern,
-            timestamp_client: new Date().toISOString(),
-            timestamp_server: serverTimestamp(),
-            extra_info: extraInfo,
-            user_agent: navigator.userAgent
+            f1_user_name: userName,
+            f2_session_id: sessionId,
+            f3_event_type: eventType,
+            f4_pattern: currentPattern,
+            f5_condition: currentCondition,
+            f6_post_id: postId,
+            f7_type: extraInfo.type,
+            f8_content: extraInfo.content,
+            f9_answered: extraInfo.answered,
+            f10_timestamp: serverTimestamp()
         });
     } catch (error) {
         console.error("ログ保存エラー:", error);
@@ -852,15 +863,14 @@ async function submitResponse(id) {
         return;
     }
     await addDoc(collection(db, "answers"), {
-        user_name: userName,
-        session_id: sessionId,
-        post_id: id,
-        answer_text: responseText,
-        answer_length: responseText.length,
-        condition: currentCondition,
-        pattern: currentPattern,
-        timestamp_client: new Date().toISOString(),
-        timestamp_server: serverTimestamp()
+        f1_user_name: userName,
+        f2_session_id: sessionId,
+        f3_pattern: currentPattern,
+        f4_condition: currentCondition,
+        f5_answer_text: responseText,
+        f6_answer_length: responseText.length,
+        f7_post_id: id,
+        f8_timestamp: serverTimestamp()
     });
 
     logEvent("submit_answer", id, {
