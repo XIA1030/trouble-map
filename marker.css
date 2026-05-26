@@ -1,0 +1,97 @@
+.pin {
+    position: relative;
+    width: 42px;
+    height: 56px;
+    cursor: pointer;
+
+    transition:
+        transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+        opacity 180ms ease,
+        filter 180ms ease;
+
+    transform-origin: center bottom;
+}
+
+.pin-core {
+    position: relative;
+    z-index: 3;
+
+    transition:
+        filter 220ms ease,
+        transform 220ms ease;
+}
+
+.pin-core img {
+    width: 42px;
+    height: 56px;
+    display: block;
+
+    filter:
+        drop-shadow(0 2px 6px rgba(0,0,0,0.18));
+}
+
+.pin:hover {
+    transform:
+        translateY(-2px)
+        scale(1.04);
+}
+
+.pin:hover .pin-core img {
+    filter:
+        drop-shadow(0 6px 14px rgba(0,0,0,0.22));
+}
+
+.pin.selected {
+    transform:
+        translateY(-12px)
+        scale(1.18);
+
+    z-index: 9999;
+}
+
+
+
+.pin.selected .pin-core img {
+
+    filter:
+        drop-shadow(0 18px 28px rgba(0,0,0,0.32))
+        drop-shadow(0 6px 10px rgba(0,0,0,0.18))
+        saturate(1.08)
+        contrast(1.04);
+
+}
+
+.map-has-selection .pin:not(.selected) {
+    opacity: 0.42;
+    transform: scale(0.94);
+    filter: saturate(0.72);
+}
+
+.pin.answered .orbit-ring {
+    opacity: 0;
+}
+
+.orbit-ring {
+    display: none;
+}
+.pin.answered {
+    transform: scale(1) !important;
+}
+
+.pin.answered .pin-core img {
+
+    opacity: 0.42;
+
+    filter:
+        grayscale(0.72)
+        saturate(0.32)
+        brightness(0.82)
+        drop-shadow(0 1px 3px rgba(0,0,0,0.08));
+
+}
+
+
+.pin.dimmed {
+    opacity: 0.42;
+    filter: saturate(0.65);
+}

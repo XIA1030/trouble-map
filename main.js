@@ -35,7 +35,7 @@ let firstFix = true;          // 最初の測位で地図を寄せる
 // 👇 逻辑聚类用的全局表
 let clusters = [];                 // [{id: 0, type: 'xxx', members: [marker, ...]}, ...]
 let markerIdToClusterId = {};      // { marker.customData.id : clusterId }
-
+const MAX_CLUSTER_DISTANCE_METERS = 50;
 let userName = prompt("ユーザーIDを入力してください");
 
 if (!userName || userName.trim() === "") {
@@ -63,9 +63,9 @@ async function logEvent(eventType, postId = null, extraInfo = {}) {
             f4_pattern: currentPattern,
             f5_condition: currentCondition,
             f6_post_id: postId,
-            f7_type: extraInfo.type,
-            f8_content: extraInfo.content,
-            f9_answered: extraInfo.answered,
+            f7_type: extraInfo.type ?? null,
+            f8_content: extraInfo.content ?? null,
+            f9_answered: extraInfo.answered ?? null,
             f10_timestamp: serverTimestamp()
         });
     } catch (error) {
@@ -82,9 +82,19 @@ function initMap() {
         streetViewControl: false,
         mapTypeControl: false,
         clickableIcons: false,
-        gestureHandling: 'greedy'
+        gestureHandling: 'greedy',
+        mapId: "DEMO_MAP_ID"
     });
+    map.addListener("click", () => {
 
+        if (activeInfoWindow) {
+            activeInfoWindow.close();
+            activeInfoWindow = null;
+        }
+
+        clearSelection();
+
+    });
     loadAvatars(() => loadDataAndDisplayMarkers(currentPattern, currentCondition));
     // 🆕 開始測位
     startGeolocation();
@@ -305,7 +315,20 @@ function loadAvatars(callback) {
             callback();
         });
 }
+function createPinElement(iconUrl) {
+    const pin = document.createElement("div");
+    pin.className = "pin";
 
+    pin.innerHTML = `
+        <div class="focus-halo"></div>
+        <div class="orbit-ring"></div>
+        <div class="pin-core">
+            <img src="${iconUrl}">
+        </div>
+    `;
+
+    return pin;
+}
 function loadDataAndDisplayMarkers(pattern, condition) {
     fetch(`./data/${pattern}.json`)
         .then(res => res.json())
@@ -314,16 +337,12 @@ function loadDataAndDisplayMarkers(pattern, condition) {
 
             data.forEach((markerData, index) => {
                 const iconUrl = getIconForMarker(markerData, condition);
-                const marker = new google.maps.Marker({
-                    position: markerData.position,
-                    map: map,  // 直接画在地图上
-                    icon: {
-                        url: iconUrl,
-                        scaledSize: new google.maps.Size(28, 28),
-                    },
-                    opacity: 1.0
-                });
 
+                const marker = new google.maps.marker.AdvancedMarkerElement({
+                    position: markerData.position,
+                    map: map,
+                    content: createPinElement(iconUrl)
+                });
                 marker.customData = {
                     id: index,
                     type: markerData.type,
@@ -349,7 +368,7 @@ function loadDataAndDisplayMarkers(pattern, condition) {
 
 function getIconForMarker(markerData, condition, plain = false, highlight = false) {
     if (condition === 'noHint') {
-        return './icons/question.png';
+        return './icons/question.svg';
     } else {
         const folder = currentPattern === 'pattern1' ? 'p1'
             : currentPattern === 'pattern2' ? 'p2'
@@ -357,13 +376,15 @@ function getIconForMarker(markerData, condition, plain = false, highlight = fals
                     : 'p1';
 
         const suffix = highlight ? '_hl' : plain ? '_plain' : '';
-        return `./icons/${folder}/${markerData.type}${suffix}.png`;
+        return `./icons/${folder}/${markerData.type}${suffix}.svg`;
     }
 }
 
 function clearMarkers() {
     // 清掉地图上的 marker
-    allMarkers.forEach(marker => marker.setMap(null));
+    allMarkers.forEach(marker => {
+        marker.map = null;
+    });
     allMarkers = [];
     selectedMarkers = [];
 
@@ -394,10 +415,7 @@ function buildClustersKMeans() {
 
         if (n === 0) continue;
 
-        // 点数が少ない場合は1クラスタ
-        const k = decideK(n);
-
-        const result = kmeansMarkers(markers, k);
+        const result = splitClustersByDistance(markers);
 
         result.forEach(members => {
             const cid = nextClusterId++;
@@ -417,25 +435,18 @@ function buildClustersKMeans() {
     console.log("k-means clusters:", clusters);
 }
 
-// === クラスタ数 k を決める ===
-// 必要に応じて調整してOK
-function decideK(n) {
-    if (n <= 10) return 1;
-    if (n <= 15) return 2;
-    if (n <= 20) return 3;
-    return Math.ceil(Math.sqrt(n));
-}
+
 
 
 // === marker 配列に対する k-means ===
 function kmeansMarkers(markers, k, maxIter = 100) {
     // 緯度経度を数値データに変換
     const points = markers.map(m => {
-        const pos = m.getPosition();
+        const pos = m.position;
         return {
             marker: m,
-            lat: pos.lat(),
-            lng: pos.lng()
+            lat: typeof pos.lat === "function" ? pos.lat() : pos.lat,
+            lng: typeof pos.lng === "function" ? pos.lng() : pos.lng
         };
     });
 
@@ -528,6 +539,56 @@ function updateCentroids(points, assignments, k) {
 }
 
 
+function splitClustersByDistance(markers) {
+    const result = [];
+    const queue = [markers];
+
+    while (queue.length > 0) {
+        const group = queue.shift();
+
+        if (group.length <= 2) {
+            result.push(group);
+            continue;
+        }
+
+        const maxDistance = getMaxDistanceInCluster(group);
+
+        if (maxDistance <= MAX_CLUSTER_DISTANCE_METERS) {
+            result.push(group);
+        } else {
+            const splitResult = kmeansMarkers(group, 2);
+
+            if (splitResult.length <= 1) {
+                result.push(group);
+            } else {
+                splitResult.forEach(g => queue.push(g));
+            }
+        }
+    }
+
+    return result;
+}
+function getMaxDistanceInCluster(markers) {
+    let maxDistance = 0;
+
+    for (let i = 0; i < markers.length; i++) {
+        for (let j = i + 1; j < markers.length; j++) {
+            const pos1 = markers[i].position;
+            const pos2 = markers[j].position;
+
+            const lat1 = typeof pos1.lat === "function" ? pos1.lat() : pos1.lat;
+            const lng1 = typeof pos1.lng === "function" ? pos1.lng() : pos1.lng;
+            const lat2 = typeof pos2.lat === "function" ? pos2.lat() : pos2.lat;
+            const lng2 = typeof pos2.lng === "function" ? pos2.lng() : pos2.lng;
+
+            const d = distanceLatLng(lat1, lng1, lat2, lng2);
+            maxDistance = Math.max(maxDistance, d);
+        }
+    }
+
+    return maxDistance;
+}
+
 // === 緯度経度間の距離 ===
 function distanceLatLng(lat1, lng1, lat2, lng2) {
     const R = 6371e3;
@@ -553,10 +614,23 @@ function getClusterMembers(marker, includeSelf = true) {
     return includeSelf ? members : members.filter(m => m !== marker);
 }
 
+function clearSelection() {
+    document.body.classList.remove("map-has-selection");
 
+    allMarkers.forEach(m => {
+        if (m.content) {
+            m.content.classList.remove("selected");
+        }
+    });
+
+    selectedMarkers = [];
+}
 function bindInfoWindow(marker) {
     const infoWindow = new google.maps.InfoWindow();
-
+    infoWindow.addListener("closeclick", () => {
+        clearSelection();
+        activeInfoWindow = null;
+    });
 
     marker.addListener("click", () => {
         logEvent("click_marker", marker.customData.id, {
@@ -568,22 +642,24 @@ function bindInfoWindow(marker) {
         if (activeInfoWindow) activeInfoWindow.close();
 
         selectedMarkers.forEach(m => {
-            m.setIcon({
-                url: m.customData.defaultIcon,
-                scaledSize: new google.maps.Size(28, 28)
-            });
+            m.content.classList.remove("selected");
         });
         selectedMarkers = [];
+        clearSelection();
 
+        if (currentCondition === 'similarPlusSolved') {
+            document.body.classList.add("map-has-selection");
+        }
         if (currentCondition === 'similarPlusSolved') {
             // 👇 现在不再用“20m 圆形邻域”，改成“所在簇的全体成员”
             const selected = getClusterMembers(marker, true);
-            selected.forEach(m => {
-                m.setIcon({
-                    url: getIconForMarker(m.customData, currentCondition, false, true),
-                    scaledSize: new google.maps.Size(28, 28)
+            if (currentCondition === 'similarPlusSolved') {
+
+                selected.forEach(m => {
+                    m.content.classList.add("selected");
                 });
-            });
+
+            }
             selectedMarkers = selected;
         }
 
@@ -856,20 +932,25 @@ async function submitResponse(id) {
         showToast('⚠️ 内容を入力してください！');
         return;
     }
-    await addDoc(collection(db, "answers"), {
-        f1_user_name: userName,
-        f2_session_id: sessionId,
-        f3_pattern: currentPattern,
-        f4_condition: currentCondition,
-        f5_answer_text: responseText,
-        f6_answer_length: responseText.length,
-        f7_post_id: id,
-        f8_timestamp: serverTimestamp()
-    });
+    try {
+        await addDoc(collection(db, "answers"), {
+            f1_user_name: userName,
+            f2_session_id: sessionId,
+            f3_pattern: currentPattern,
+            f4_condition: currentCondition,
+            f5_answer_text: responseText,
+            f6_answer_length: responseText.length,
+            f7_post_id: id,
+            f8_timestamp: serverTimestamp()
+        });
 
-    logEvent("submit_answer", id, {
-        answer_length: responseText.length
-    });
+        logEvent("submit_answer", id, {
+            answer_length: responseText.length
+        });
+    } catch (error) {
+        console.error("回答保存エラー:", error);
+        showToast("⚠️ 回答は画面上に反映しましたが、Firebase保存に失敗しました");
+    }
     const sameTypeNearby = getClusterMembers(marker, true);
 
 
@@ -878,10 +959,14 @@ async function submitResponse(id) {
         m.customData.responseText = responseText;
         m.customData.answeredByUser = false;
 
+        // 只有「類似投稿＋解決人数」才显示已回答视觉效果
         if (currentCondition === 'similarPlusSolved') {
-            m.setOpacity(0.3);
+            m.content.classList.add("answered");
+            m.content.classList.add("dimmed");
         } else {
-            m.setOpacity(1.0);
+            m.content.classList.remove("answered");
+            m.content.classList.remove("dimmed");
+            m.content.classList.remove("selected");
         }
     });
     marker.customData.answeredByUser = true;
@@ -1064,3 +1149,5 @@ window.toggleQuestion = toggleQuestion;
 window.editResponse = editResponse;
 window.cancelEdit = cancelEdit;
 window.saveResponse = saveResponse;
+
+window.addEventListener("load", initMap);

@@ -1,570 +1,1122 @@
 [
-  {
+ {
     "position": {
-      "lat": 34.80938076961613,
-      "lng": 135.56149807606582
+      "lat": 34.80975147229619,
+      "lng": 135.56114032262357
     },
-    "type": "toilet",
-    "questionText": "最近トイレめっちゃ混んでるんだけど、みんな休み時間どうやって乗り切ってる？"
+    "type": "aeon_access_route",
+    "questionText": "イオンって地下のルートから行くしか無い？h棟から近いルートないかな？"
   },
   {
     "position": {
-      "lat": 34.81112171680421,
-      "lng": 135.5611392760519
+      "lat": 34.80908607429674,
+      "lng": 135.56026144792364
     },
-    "type": "toilet",
-    "questionText": "トイレ行くのに毎回行列で、休み時間全部消えるんですが…これって普通？"
+    "type": "aeon_access_route",
+    "questionText": "イオンって地下通路通るしか行き方ない？H棟からもっと楽なルートあったりする？"
   },
   {
     "position": {
-      "lat": 34.81084945425916,
-      "lng": 135.56139966622476
+      "lat": 34.80966505940395,
+      "lng": 135.56169576764796
     },
-    "type": "toilet",
-    "questionText": "1限終わってトイレ直行してももう並んでるってどういうこと！？場所増やしてほしい…"
+    "type": "aeon_access_route",
+    "questionText": "H棟勢なんだけど、イオン行くの毎回ちょい遠く感じる…最短ルート教えてほしい"
   },
   {
     "position": {
-      "lat": 34.8090586900622,
-      "lng": 135.56131630960076
+      "lat": 34.80837652309639,
+      "lng": 135.56142296304677
     },
-    "type": "toilet",
-    "questionText": "毎回トイレのために別の棟まで移動してて授業ギリギリです。どこが空いてるか教えてくれる人いませんか？"
+    "type": "aeon_access_route",
+    "questionText": "h棟からイオン行く時いつも地下通ってるんだけど、地上の近道とか知ってる人いる？"
   },
   {
     "position": {
-      "lat": 34.80878615682247,
-      "lng": 135.56113423630742
+      "lat": 34.808539426579685,
+      "lng": 135.56059208541848
     },
-    "type": "toilet",
-    "questionText": "正直、階によってトイレの場所が違ってわからない、、2階のトイレってどの辺にありますか？"
+    "type": "aeon_access_route",
+    "questionText": "h棟からイオン行く時、みんなどこ通ってる？毎回迷うんだけど笑"
   },
   {
     "position": {
-      "lat": 34.80896232989337,
-      "lng": 135.56175640224356
+      "lat": 34.80928483980608,
+      "lng": 135.56158820102917
     },
-    "type": "health_center_location",
-    "questionText": "保健センターってH棟にあるって聞いたんだけど、具体的にどこ？ぐるぐる回っても見つからない…"
+    "type": "aeon_access_route",
+    "questionText": "H棟からイオン近そうに見えるのに意外と遠くない？もっといい行き方ないかな"
   },
   {
     "position": {
-      "lat": 34.80904695931979,
-      "lng": 135.56143317290045
+      "lat": 34.809722065672034,
+      "lng": 135.56152777591822
     },
-    "type": "health_center_location",
-    "questionText": "H棟にいるんですが、保健センターが見当たりません。どなたか場所ご存じの方いませんか？"
+    "type": "aeon_access_route",
+    "questionText": "イオン行くのに地下しか知らないんだけど、他に楽な道ある？H棟からです"
   },
   {
     "position": {
-      "lat": 34.80876232304828,
-      "lng": 135.56129323181545
+      "lat": 34.80835238449149,
+      "lng": 135.56044794176697
     },
-    "type": "health_center_location",
-    "questionText": "H棟の保健センターって何階にあるか分かる方いらっしゃいますか？急ぎで探してます…"
+    "type": "aeon_access_route",
+    "questionText": "h棟→イオンって最適解どこ？地下以外で行ってる人いたら知りたい"
   },
   {
     "position": {
-      "lat": 34.80884550557169,
-      "lng": 135.56098980947934
+      "lat": 34.809193938385704,
+      "lng": 135.561236974844
     },
-    "type": "water_dispenser",
-    "questionText": "え、H棟の上の階に給水器ないの？下まで行くのめんどすぎる…なんとかならん？"
+    "type": "aeon_access_route",
+    "questionText": "イオンまでのルート、地下以外にもあるなら知りたい…H棟からだと毎回消耗する"
   },
   {
     "position": {
-      "lat": 34.80886203799479,
-      "lng": 135.56134409798128
+      "lat": 34.8098091504321,
+      "lng": 135.56107789831978
     },
-    "type": "water_dispenser",
-    "questionText": "H棟の給水器ってどこにあるんですか？探しても見つからず、のど乾いて干からびそうです…"
+    "type": "aeon_access_route",
+    "questionText": "H棟からイオン行く時のおすすめルート募集🙏 地下以外でラクな道あったら教えてほしい"
+  },
+   {
+    "position": {
+      "lat": 34.81089058091442,
+      "lng": 135.5605404931674
+    },
+    "type": "bike_parking_availability",
+    "questionText": "朝9時の駐輪場、もう満車で草…。"
   },
   {
     "position": {
-      "lat": 34.808947019353916,
-      "lng": 135.56179969923318
+      "lat": 34.810888121047974,
+      "lng": 135.56072412988374
     },
-    "type": "water_dispenser",
-    "questionText": "H棟に詳しい方いますか？給水器の場所が分からなくて、何周もしてしまいました。ご存じでしたら教えてください…！"
+    "type": "bike_parking_availability",
+    "questionText": "授業5分前に着いたのに駐輪場空いてなくて詰みました。同じ経験ある人います？"
   },
   {
     "position": {
-      "lat": 34.809988789528795,
-      "lng": 135.56045570481103
+      "lat": 34.810939014486046,
+      "lng": 135.56063910279127
     },
-    "type": "gym_usage",
-    "questionText": "ジムの使い方とか予約方法とか全然わからないんだけど…詳しい人いたら教えてください🙏"
+    "type": "bike_parking_availability",
+    "questionText": "駐輪場広いのに空いてる場所が全然わからないの、自分だけですか？"
   },
   {
     "position": {
-      "lat": 34.81023715105889,
-      "lng": 135.56037244029224
+      "lat": 34.810957624464876,
+      "lng": 135.56055700256982
     },
-    "type": "gym_usage",
-    "questionText": "最近ジム行こうと思ってるけど、登録の仕方も予約の取り方も不明…誰か初心者に優しく教えて～"
+    "type": "bike_parking_availability",
+    "questionText": "一限だけ異常に駐輪場混んでる気がする…。結局遠いとこ停めて遅刻しかけた。"
   },
   {
     "position": {
-      "lat": 34.81038875709531,
-      "lng": 135.56003561361436
+      "lat": 34.811061514537485,
+      "lng": 135.5602428548786
     },
-    "type": "gym_usage",
-    "questionText": "ジムの利用方法を知らなすぎて、建物の前で5分ウロウロして帰りました。誰か助けてください😂"
+    "type": "bike_parking_availability",
+    "questionText": "毎回自転車停める場所探すだけで5分くらい使ってるんだけど、みんな不便感じてない？"
   },
   {
     "position": {
-      "lat": 34.81015940753163,
-      "lng": 135.56050556046884
+      "lat": 34.81093351096827,
+      "lng": 135.56036850278238
     },
-    "type": "gym_usage",
-    "questionText": "「ジム利用ガイド」みたいなのないんですか？登録・予約方法、あと空いてる時間の目安とか知りたいです。"
+    "type": "bike_parking_availability",
+    "questionText": "今日だけで駐輪場3周しました。空いてないというより“見つからない”のがしんどい。"
   },
   {
     "position": {
-      "lat": 34.81001194306147,
-      "lng": 135.56051495354734
+      "lat": 34.810979478405535,
+      "lng": 135.56027032243495
     },
-    "type": "gym_usage",
-    "questionText": "ジムの利用方法を知らなすぎて、建物の前で5分ウロウロして帰りました。誰か助けてください😂"
+    "type": "bike_parking_availability",
+    "questionText": "自転車多すぎて入れにくいの地味にストレス…。"
   },
   {
     "position": {
-      "lat": 34.81230408855406,
-      "lng": 135.56078147275622
+      "lat": 34.81097605978555,
+      "lng": 135.56041368647973
     },
-    "type": "classroom",
-    "questionText": "空いてる教室っていつどこにあるのか誰か知ってますか？"
+    "type": "bike_parking_availability",
+    "questionText": "駅側の駐輪場いつも埋まってるけど、穴場スポット知ってる人いたら教えてほしいです🙏"
   },
   {
     "position": {
-      "lat": 34.80941479606695,
-      "lng": 135.56143345537942
+      "lat": 34.8108231900176,
+      "lng": 135.56041905371669
     },
-    "type": "classroom",
-    "questionText": "授業の合間にちょっと静かに作業したいんだけど、空いてる教室探すの難しすぎる。どこ見れば分かるの？"
+    "type": "bike_parking_availability",
+    "questionText": "駐輪場空いてなさすぎて授業ギリギリになった…朝から疲れる…。"
   },
   {
     "position": {
-      "lat": 34.81016344589332,
-      "lng": 135.5608738525159
+      "lat": 34.81093036924123,
+      "lng": 135.56043482272926
     },
-    "type": "classroom",
-    "questionText": "1時間くらいだけ授業時に使える空き教室、知ってる人いたら教えてください！雨だしカフェ混んでて無理…"
+    "type": "bike_parking_availability",
+    "questionText": "朝1限前になると駐輪場がほぼ満車で、毎回どこ停めるか探し回ってます…。"
+  },
+   {
+    "position": {
+      "lat": 34.809109790653835,
+      "lng": 135.56211217755748
+    },
+    "type": "branch_library_location",
+    "questionText": "分林館ってどこにあるんですか？今日初めて聞いたんだけど全然わからん…"
   },
   {
     "position": {
-      "lat": 34.810815906120595,
-      "lng": 135.5617637686916
+      "lat": 34.80930937348088,
+      "lng": 135.56050173214624
     },
-    "type": "classroom",
-    "questionText": "空き教室の情報、リアルタイムで見れるシステムとかあったらめちゃ助かるんだけど、既にある？"
+    "type": "branch_library_location",
+    "questionText": "分林館ってキャンパスのどのへん？毎回名前だけ見て終わる"
   },
   {
     "position": {
-      "lat": 34.80899196447916,
-      "lng": 135.5613637179469
+      "lat": 34.810645325636635,
+      "lng": 135.55995853634144
     },
-    "type": "classroom",
-    "questionText": "今H棟にいるんだけど、どこか静かな空き教室知ってる人いませんか？人と話す予定があって…"
+    "type": "branch_library_location",
+    "questionText": "分林館どこ？？？5分くらいキャンパスさまよってる"
   },
   {
     "position": {
-      "lat": 34.81095670419557,
-      "lng": 135.56111893192528
+      "lat": 34.81010944726235,
+      "lng": 135.56310760791945
     },
-    "type": "classroom",
-    "questionText": "試験前で勉強したいのにどこも人多すぎて無理。今静かな空き教室あるとこ、誰か教えてください…！"
+    "type": "branch_library_location",
+    "questionText": "分林館ってどこですか？マジで見つからないです"
   },
   {
     "position": {
-      "lat": 34.8101329217248,
-      "lng": 135.56144459535568
+      "lat": 34.81067807306578,
+      "lng": 135.55946125302907
     },
-    "type": "canteen_hours",
-    "questionText": "食堂って何時までやってるんですか？夜遅くに行ったら閉まってて絶望しました…"
+    "type": "branch_library_location",
+    "questionText": "誰か分林館の場所教えてください🙏"
   },
   {
     "position": {
-      "lat": 34.81021484335986,
-      "lng": 135.56159881101505
+      "lat": 34.81057729764392,
+      "lng": 135.56273687659106
     },
-    "type": "canteen_hours",
-    "questionText": "朝ごはん食べたいんだけど、食堂って何時から開いてるのか知ってる人いますか？"
+    "type": "branch_library_location",
+    "questionText": "分林館ってどの辺にありますか？"
   },
   {
     "position": {
-      "lat": 34.81011823288036,
-      "lng": 135.56159004300767
+      "lat": 34.810134672616606,
+      "lng": 135.56170159017645
     },
-    "type": "canteen_hours",
-    "questionText": "休日でも食堂開いてるのかな？誰か利用したことある人いたら教えてください！"
+    "type": "branch_library_location",
+    "questionText": "分林館って南側？北側？全然わからん"
   },
   {
     "position": {
-      "lat": 34.81023091484199,
-      "lng": 135.56146075464602
+      "lat": 34.80981091286143,
+      "lng": 135.56240215513566
     },
-    "type": "canteen_hours",
-    "questionText": "どなたか食堂の営業時間（平日・休日）をまとめてみれるところ知りませんか？"
+    "type": "branch_library_location",
+    "questionText": "分林館どこｗｗｗ毎回迷うんだけど"
   },
   {
     "position": {
-      "lat": 34.81041609978725,
-      "lng": 135.56131634325325
+      "lat": 34.81041928399251,
+      "lng": 135.56044270483608
     },
-    "type": "canteen_hours",
-    "questionText": "ていうか、食堂の営業時間ってどこに書いてあるの？早朝とか休日も開けてほしい…"
+    "type": "branch_library_location",
+    "questionText": "初めて行くんですけど分林館ってどこですか？"
   },
   {
     "position": {
-      "lat": 34.810077668321,
-      "lng": 135.5617928713875
+      "lat": 34.80934652027947,
+      "lng": 135.5593435039977
     },
-    "type": "canteen_hours",
-    "questionText": "祝日に食堂に行ったら閉まってた……どこかに営業日カレンダーとかあったりします？"
+    "type": "branch_library_location",
+    "questionText": "分林館の場所わかる人いますか？急いでます"
+  },
+    {
+    "position": {
+      "lat": 34.808911235487095,
+      "lng": 135.56154918822145
+    },
+    "type": "building_connection_route",
+    "questionText": "Ｃ棟からＨ棟に行きたかったのに、4階じゃ繋がってない！？どの階を通ればいいの？"
   },
   {
     "position": {
-      "lat": 34.809920167413495,
-      "lng": 135.56139232761905
+      "lat": 34.809144781801145,
+      "lng": 135.56142742190028
     },
-    "type": "canteen",
+    "type": "building_connection_route",
+    "questionText": "Ｈ棟に行こうとしたら迷子になった…。Ｃ棟からＨ棟って普通どのルートで行くんだろ？"
+  },
+  {
+    "position": {
+      "lat": 34.809350240464575,
+      "lng": 135.56074194709393
+    },
+    "type": "building_connection_route",
+    "questionText": "4階からＨ棟に行けないの地味に不便じゃない？どこからなら行けるんだろ…。"
+  },
+  {
+    "position": {
+      "lat": 34.80923107044532,
+      "lng": 135.56085679180794
+    },
+    "type": "building_connection_route",
+    "questionText": "Ｃ棟からＨ棟に移動する道がわからなくてめちゃくちゃ焦った。誰か詳しい人、どの通路使えばいいか教えて〜！"
+  },
+  {
+    "position": {
+      "lat": 34.810172919446494,
+      "lng": 135.56191233876342
+    },
+    "type": "building_connection_route",
+    "questionText": "今日初めてＣ棟からＨ棟行こうとしたら道に迷った…！どの階に通路があるのか誰か教えてください（泣）"
+  },
+  {
+    "position": {
+      "lat": 34.80892754232118,
+      "lng": 135.561789113213
+    },
+    "type": "building_connection_route",
+    "questionText": "4階じゃダメだった…！Ｃ棟からＨ棟、結局どこを通ればいいの？知ってる人いたらヘルプ！"
+  },
+  {
+    "position": {
+      "lat": 34.80983288114801,
+      "lng": 135.56219638865272
+    },
+    "type": "building_connection_route",
+    "questionText": "H棟からC棟に移動したいんですけど、3階で繋がってましたっけ？😅"
+  },
+  {
+    "position": {
+      "lat": 34.80951697956764,
+      "lng": 135.5616323895004
+    },
+    "type": "building_connection_route",
+    "questionText": "新入生なんですけど、H棟→C棟の行き方が未だによく分かりません…"
+  },
+  {
+    "position": {
+      "lat": 34.80921667902925,
+      "lng": 135.56106561518968
+    },
+    "type": "building_connection_route",
+    "questionText": "H棟とC棟って何階で繋がってるんでしたっけ？😭"
+  },
+  {
+    "position": {
+      "lat": 34.81005223625154,
+      "lng": 135.56178383477163
+    },
+    "type": "building_connection_route",
+    "questionText": "至急です！H棟からC棟ってどの階で移動できますか？🙏"
+  },
+    {
+    "position": {
+      "lat": 34.81016677407258,
+      "lng": 135.560978540798
+    },
+    "type": "cafeteria_seating_shortage",
     "questionText": "食堂でようやくご飯を買ったのに、座る場所が全然見つからない…どこか空いてる席知りませんか？"
   },
   {
     "position": {
-      "lat": 34.809907922119244,
-      "lng": 135.56066837831932
+      "lat": 34.80964426439484,
+      "lng": 135.56129540910527
     },
-    "type": "canteen",
+    "type": "cafeteria_seating_shortage",
     "questionText": "お昼時、食堂が混みすぎて座れない…。近くに持ち出して食べられる場所ってありますか？"
   },
   {
     "position": {
-      "lat": 34.80974513200873,
-      "lng": 135.56132622044836
+      "lat": 34.809918711194875,
+      "lng": 135.5610504016132
     },
-    "type": "canteen",
-    "questionText": "ご飯持ってウロウロしてるんだけど、どこか静かに食べられる場所ないかな？"
+    "type": "cafeteria_seating_shortage",
+    "questionText": "学食の席数、学生数に対して絶対足りてなくない？？？"
   },
   {
     "position": {
-      "lat": 34.81003909630757,
-      "lng": 135.56152456944938
+      "lat": 34.80980618933815,
+      "lng": 135.56089545138423
     },
-    "type": "canteen",
-    "questionText": "せっかく並んだのに座るところがないとか泣ける…。どこか座れるところ教えてください"
+    "type": "cafeteria_seating_shortage",
+    "questionText": "せっかく並んだのに座るところがないとか泣ける…。"
   },
   {
     "position": {
-      "lat": 34.80980811209178,
-      "lng": 135.56133402562438
+      "lat": 34.809599652042216,
+      "lng": 135.56161422910102
     },
-    "type": "canteen",
-    "questionText": "食堂以外で、トレイ持ったままご飯食べても大丈夫な場所ありますか？"
+    "type": "cafeteria_seating_shortage",
+    "questionText": "友達と学食行きたいのに毎回バラバラで食べることになるの悲しい"
   },
   {
     "position": {
-      "lat": 34.810209217936446,
-      "lng": 135.5607918491445
+      "lat": 34.81026208636538,
+      "lng": 135.56163449989438
     },
-    "type": "canteen",
-    "questionText": "人が少なくて落ち着いて食べられる場所、知ってたら教えてください！"
+    "type": "cafeteria_seating_shortage",
+    "questionText": "昼の学食、もはや椅子取りゲームの全国大会レベル"
   },
   {
     "position": {
-      "lat": 34.81008036000463,
-      "lng": 135.56141718872428
+      "lat": 34.80986787630184,
+      "lng": 135.56149621546876
     },
-    "type": "canteen",
-    "questionText": "静かに食べたい派です。人が少ないご飯スポット知ってる人いますか？"
+    "type": "cafeteria_seating_shortage",
+    "questionText": "学食混みすぎて、席探してるうちに昼休み終わりかけるのしんどい"
   },
   {
     "position": {
-      "lat": 34.810103615333155,
-      "lng": 135.5617559641345
+      "lat": 34.80978158677501,
+      "lng": 135.56078476664217
     },
-    "type": "canteen",
-    "questionText": "トレイ持って移動できる範囲で、座って食べられるところ知ってたら教えてください！"
+    "type": "cafeteria_seating_shortage",
+    "questionText": "毎日「今日は座れるかな…」って思いながら学食行ってる"
   },
   {
     "position": {
-      "lat": 34.81052892421256,
-      "lng": 135.56157252491073
+      "lat": 34.80962606897631,
+      "lng": 135.5611645090479
     },
-    "type": "canteen",
-    "questionText": "お昼のピーク時、どこも満席…。近場で食べられる場所ってないんでしょうか？"
+    "type": "cafeteria_seating_shortage",
+    "questionText": "お昼のピーク時、どこも満席…。"
   },
   {
     "position": {
-      "lat": 34.80975426226354,
-      "lng": 135.56155554825608
+      "lat": 34.81032516719375,
+      "lng": 135.56116824587568
     },
-    "type": "canteen",
-    "questionText": "ランチタイム、どこ行っても人だらけ…。静かに座れる場所が切実にほしい。"
+    "type": "cafeteria_seating_shortage",
+    "questionText": "ランチタイム、どこ行っても人だらけ…。"
+  },
+    {
+    "position": {
+      "lat": 34.809705257222234,
+      "lng": 135.56079455646312
+    },
+    "type": "campus_parking_policy",
+    "questionText": "学内の駐車場って学生なら誰でも使っていいんですか？申請とか必要ですか？"
   },
   {
     "position": {
-      "lat": 34.809870558217256,
-      "lng": 135.56125213465413
+      "lat": 34.80924145510432,
+      "lng": 135.56174408995162
     },
-    "type": "canteen",
-    "questionText": "食堂からちょっと歩いてもいいから、空いてる食事スポット教えて！"
+    "type": "campus_parking_policy",
+    "questionText": "バイク通学したいんですけど、学内駐車場って空いてれば自由に停めてOKなんでしょうか？"
   },
   {
     "position": {
-      "lat": 34.809848967590405,
-      "lng": 135.56208330326345
+      "lat": 34.80949866719651,
+      "lng": 135.55865355168783
     },
-    "type": "canteen",
-    "questionText": "ご飯を持ったまま、席を探して三千里…。おすすめの席ありますか？"
+    "type": "campus_parking_policy",
+    "questionText": "学内駐車場に停めてる人多いけど、あれって許可取ってるんですか？無断でも大丈夫…？"
   },
   {
     "position": {
-      "lat": 34.810090850784974,
-      "lng": 135.56108924690068
+      "lat": 34.80785819048322,
+      "lng": 135.5617129779588
     },
-    "type": "canteen",
-    "questionText": "立ち食い覚悟してたけど、できれば座りたい。どこか座れるところあります？"
+    "type": "campus_parking_policy",
+    "questionText": "新入生なんですが、学内駐車場の利用ルールがよくわかりません…。学生でも使えるんでしょうか？"
   },
   {
     "position": {
-      "lat": 34.80984665432473,
-      "lng": 135.56138028079977
+      "lat": 34.808304750785126,
+      "lng": 135.56018296198562
     },
-    "type": "canteen",
-    "questionText": "食堂でトレイ持ったままうろうろするのが恥ずかしい。すぐ座れる場所どこ？"
+    "type": "campus_parking_policy",
+    "questionText": "学内駐車場って教職員専用ですか？学生が使ったら怒られますかね…？"
   },
   {
     "position": {
-      "lat": 34.80989813019508,
-      "lng": 135.56149069430916
+      "lat": 34.808053003545595,
+      "lng": 135.561667455054
     },
-    "type": "canteen",
-    "questionText": "近くにベンチとかテーブルあるところ、詳しい人教えてください！"
+    "type": "campus_parking_policy",
+    "questionText": "朝早く行けば学内駐車場って停めていいんですか？それとも登録制？"
   },
   {
     "position": {
-      "lat": 34.81006134175403,
-      "lng": 135.56092360894536
+      "lat": 34.809451626907844,
+      "lng": 135.5595167654505
     },
-    "type": "canteen",
-    "questionText": "お昼に人が少ないエリア、どこか知ってたら教えてください～"
+    "type": "campus_parking_policy",
+    "questionText": "雨の日だけ車で行きたいんですが、学内駐車場って一時的に使うのもダメなんでしょうか？"
   },
   {
     "position": {
-      "lat": 34.80995606736094,
-      "lng": 135.5608236484819
+      "lat": 34.80854414039728,
+      "lng": 135.56120819059112
     },
-    "type": "canteen",
-    "questionText": "食堂内じゃなくてもいいので、トレイ持ち込みOKな場所ありますか？"
+    "type": "campus_parking_policy",
+    "questionText": "学内駐車場って学生も使っていいんですか？"
   },
   {
     "position": {
-      "lat": 34.81041815934443,
-      "lng": 135.56148032804683
+      "lat": 34.80881536618063,
+      "lng": 135.56051143046577
     },
-    "type": "canteen",
-    "questionText": "食堂だけじゃなくて、他の建物とかにもご飯食べられる場所があったらいいのに…。"
+    "type": "campus_parking_policy",
+    "questionText": "学内の駐車場って自由に利用できますか？"
   },
   {
     "position": {
-      "lat": 34.80993803820448,
-      "lng": 135.56109291413551
+      "lat": 34.80782012197467,
+      "lng": 135.56165855139415
     },
-    "type": "canteen",
-    "questionText": "ご飯持って歩くの、地味に大変…。なるべく近くに座れる場所ないかな？"
+    "type": "campus_parking_policy",
+    "questionText": "車で行こうと思ってるんですが、学内駐車場って使えますか？"
+  },
+   {
+    "position": {
+      "lat": 34.80912153220524,
+      "lng": 135.5612213705015
+    },
+    "type": "elevator_congestion",
+    "questionText": "授業終わるたびにエレベーター戦争が始まるの、なんとかならないかな？"
   },
   {
     "position": {
-      "lat": 34.81008115209259,
-      "lng": 135.5613604094979
+      "lat": 34.8093609446588,
+      "lng": 135.5611868306827
     },
-    "type": "canteen",
-    "questionText": "食堂から出てもいいから、座って食べられる場所が知りたいです！"
+    "type": "elevator_congestion",
+    "questionText": "エレベーター3機あるのに全然回ってこないんだが！？空いてるエレベーターどこ？"
   },
   {
     "position": {
-      "lat": 34.80977995883329,
-      "lng": 135.56208934068002
+      "lat": 34.80924030883164,
+      "lng": 135.56100585005717
     },
-    "type": "canteen",
-    "questionText": "静かで空いてて、食堂のトレイのご飯が食べられるスポット、誰か知ってたら教えてください！"
+    "type": "elevator_congestion",
+    "questionText": "3階でエレベーター乗れた試しがない。いつも満員で素通りされる…。他の移動方法はありますか"
   },
   {
     "position": {
-      "lat": 34.80997080988507,
-      "lng": 135.56169854508124
+      "lat": 34.80938415884349,
+      "lng": 135.5610585968895
     },
-    "type": "canteen",
-    "questionText": "外で食べるのもアリだけど、日差しキツい日とかどうすれば…？屋内でいいところ知ってますか？"
+    "type": "elevator_congestion",
+    "questionText": "授業間の移動、毎回エレベーター渋滞で間に合わないんですけど！階段しかないですか？"
   },
   {
     "position": {
-      "lat": 34.810767598046624,
-      "lng": 135.5606243889268
+      "lat": 34.809347399714504,
+      "lng": 135.5611088023593
     },
-    "type": "smoking_area",
-    "questionText": "吸烟所の近くを通るたびに煙のにおいが服につくんだけど、これってどうにかならないのかな？"
+    "type": "elevator_congestion",
+    "questionText": "混雑時用のエレベーター運用、もう少し工夫できないものでしょうか。"
   },
   {
     "position": {
-      "lat": 34.8106560577626,
-      "lng": 135.56046853132165
+      "lat": 34.80924530556676,
+      "lng": 135.5612294262973
     },
-    "type": "smoking_area",
-    "questionText": "お願い！吸煙所の場所を少し移動できない？通学路で毎日通るから、朝から煙くてつらい…"
+    "type": "elevator_congestion",
+    "questionText": "休み時間は階段使うしかないって諦めてるけど、足が限界。どうすればエレベーター乗れますか？"
   },
   {
     "position": {
-      "lat": 34.810665501418676,
-      "lng": 135.5605484549043
+      "lat": 34.8092784611163,
+      "lng": 135.56099047143132
     },
-    "type": "smoking_area",
-    "questionText": "ここ通ると毎回タバコのにおいがキツすぎる！せめてもうちょっと隔離してほしい😣"
+    "type": "elevator_congestion",
+    "questionText": "なんでエレベーター、授業終わる時間に合わせて来てくれないの…。止まらない理由を教えて！"
   },
   {
     "position": {
-      "lat": 34.810442136712645,
-      "lng": 135.560115374991
+      "lat": 34.80909507523452,
+      "lng": 135.56112295454528
     },
-    "type": "smoking_area",
-    "questionText": "すみません、あそこの喫煙スペース周辺って常にタバコ臭くて、授業前に通るのが地味にストレスです。どうにかできないですか？"
+    "type": "elevator_congestion",
+    "questionText": "エレベーター台数足りてなくない？3階から１階に降りる方法を教えて！"
   },
   {
     "position": {
-      "lat": 34.810743564010686,
-      "lng": 135.56050512296878
+      "lat": 34.80931936702426,
+      "lng": 135.5610383155026
     },
-    "type": "smoking_area",
-    "questionText": "吸煙所の場所ってもっと人通り少ないとこにできなかったのかな〜、別で通れるところとかありますか？"
+    "type": "elevator_congestion",
+    "questionText": "いつも満員でドア閉まっちゃうの、心折れる…。他の移動方法はありますか？"
   },
   {
     "position": {
-      "lat": 34.81064586971265,
-      "lng": 135.56083541246872
+      "lat": 34.80917324274538,
+      "lng": 135.5611913090942
     },
-    "type": "smoking_area",
-    "questionText": "あそこの煙のニオイ、慣れると思ってたけど無理だった…この辺通るときだけ息止めてますw他の道とかありますか？"
+    "type": "elevator_congestion",
+    "questionText": "スケジュールきっちきちなのに、エレベーターで10分待ちは地味に致命的。"
   },
   {
     "position": {
-      "lat": 34.810844511702214,
-      "lng": 135.56076801622925
+      "lat": 34.808956915583224,
+      "lng": 135.55983116339843
     },
-    "type": "smoking_area",
-    "questionText": "タバコのにおいがきついって苦情あがってないの？いつも通る場所だから、なんとか改善してほしい…。ここを通らない道とかありますか？"
+    "type": "evacuation_area",
+    "questionText": "避難場所ってどこにあるんですか？今いる場所から一番近いところ知りたいです…"
   },
   {
     "position": {
-      "lat": 34.80924488315328,
-      "lng": 135.56129772322342
+      "lat": 34.80973521693816,
+      "lng": 135.5602855506436
     },
-    "type": "studyspace_meeting",
-    "questionText": "自習スペースでオンライン授業受けても大丈夫なのかな？誰か知ってたら教えてほしい！"
+    "type": "evacuation_area",
+    "questionText": "大学の避難場所ってどこですか？"
   },
   {
     "position": {
-      "lat": 34.80906617025504,
-      "lng": 135.56179122857392
+      "lat": 34.81184362269127,
+      "lng": 135.56331967085114
     },
-    "type": "studyspace_meeting",
-    "questionText": "ここの自習スペースって、Zoomとかしても平気？怒られない？笑"
+    "type": "evacuation_area",
+    "questionText": "避難場所の場所確認しとこうと思ったけど、意外と知らなくて焦ってる"
   },
   {
     "position": {
-      "lat": 34.80927736648054,
-      "lng": 135.56142414106836
+      "lat": 34.81145638306858,
+      "lng": 135.56114550413145
     },
-    "type": "studyspace_meeting",
-    "questionText": "すみません、この自習スペースでリモート授業受けてもいいか分かる方いらっしゃいますか？"
+    "type": "evacuation_area",
+    "questionText": "避難場所ってコンビニとかでもいいんですか？ガチでわからない…"
   },
   {
     "position": {
-      "lat": 34.808677041626474,
-      "lng": 135.56152465048433
+      "lat": 34.80933616253849,
+      "lng": 135.5642616184696
     },
-    "type": "studyspace_meeting",
-    "questionText": "この前自習スペースでオンラインミーティングしてる人いたけど、OKなんだろうか？自分も使いたいけど不安…"
+    "type": "evacuation_area",
+    "questionText": "避難場所ってどこですか？"
   },
   {
     "position": {
-      "lat": 34.80934165050192,
-      "lng": 135.56137677323707
+      "lat": 34.808846088644145,
+      "lng": 135.55847148411965
     },
-    "type": "studyspace_meeting",
-    "questionText": "オンライン会議したいけど、どこまでがOKでどこからがNGか分からん…誰かルール知ってたら教えてください…！"
+    "type": "evacuation_area",
+    "questionText": "この辺の避難所どこにありますか？"
   },
   {
     "position": {
-      "lat": 34.808793761425484,
-      "lng": 135.56143613758923
+      "lat": 34.80761168874071,
+      "lng": 135.55994030161116
     },
-    "type": "studyspace_meeting",
-    "questionText": "自習スペースでのリモートのミーティングがOKかどうか、どこかに掲示されていますか？"
+    "type": "evacuation_area",
+    "questionText": "避難するならどこ行けばいいんですか？"
   },
   {
     "position": {
-      "lat": 34.8090655699003,
-      "lng": 135.56107097410032
+      "lat": 34.811324916253916,
+      "lng": 135.56360599106824
     },
-    "type": "studyspace_meeting",
-    "questionText": "自習スペースに静かな場所が多いけど、逆に少し話してもいいスペースってある？オンライン授業で使える教室とか…"
+    "type": "evacuation_area",
+    "questionText": "最寄りの避難場所教えてください！"
   },
   {
     "position": {
-      "lat": 34.80970640330268,
-      "lng": 135.5618128834276
+      "lat": 34.81025176047359,
+      "lng": 135.56299580088856
     },
-    "type": "studyspace_meeting",
-    "questionText": "オンライン授業を受ける場所に困ってます…どこかで気軽に受けられる自習場所ないですか？"
+    "type": "evacuation_area",
+    "questionText": "ここらへんの避難所知ってる人います？"
   },
   {
     "position": {
-      "lat": 34.80867924388365,
-      "lng": 135.56129934493418
+      "lat": 34.80892125642915,
+      "lng": 135.56114550248935
     },
-    "type": "studyspace_meeting",
-    "questionText": "え、ここで通話していいの！？ってなったんだけど、自習スペースでの通話ルールってどこで確認できるの？"
+    "type": "evacuation_area",
+    "questionText": "災害時の避難場所どこか分かる方いますか？"
+  },
+   {
+    "position": {
+      "lat": 34.80981636524477,
+      "lng": 135.56151818224487
+    },
+    "type": "library_room_usage",
+    "questionText": "図書館の教室って勝手に使っていいんですか？予約必要なのかよく分からなくて困ってます…"
   },
   {
     "position": {
-      "lat": 34.80906630356589,
-      "lng": 135.56123447832647
+      "lat": 34.81079614038196,
+      "lng": 135.56189280429243
     },
-    "type": "studyspace_meeting",
-    "questionText": "これって自習スペースでリモート会議したら迷惑になるのかな…？"
+    "type": "library_room_usage",
+    "questionText": "図書館の教室って空いてたら入って使ってOKなんですか？"
   },
   {
     "position": {
-      "lat": 34.80994664579711,
-      "lng": 135.56172978158256
+      "lat": 34.809921461099854,
+      "lng": 135.561838469997
     },
-    "type": "studyspace_meeting",
-    "questionText": "最近、自習スペースでオンライン会議してる人見かけたけど、あれって大丈夫なんだっけ？自分も使いたいけどビビってる。"
+    "type": "library_room_usage",
+    "questionText": "図書館のグループ学習室使いたいんですけど、どこで申請するんですか？学生証いる？"
   },
   {
     "position": {
-      "lat": 34.80985574171026,
-      "lng": 135.56145142679114
+      "lat": 34.80965978254325,
+      "lng": 135.56166494145438
     },
-    "type": "studyspace_meeting",
-    "questionText": "自習室って基本静かに使う場所だと思うけど、リモート会議みたいに声出すのはアリなのかな？ルールが曖昧で困ってます…"
+    "type": "library_room_usage",
+    "questionText": "図書館の教室利用したいのに予約ページ見つからないんだけど、誰か簡単に教えてください😭"
   },
   {
     "position": {
-      "lat": 34.81023293544665,
-      "lng": 135.56137186617656
+      "lat": 34.80951078421335,
+      "lng": 135.56294635872905
     },
-    "type": "studyspace_meeting",
-    "questionText": "この自習エリア、もしオンライン授業で発話したら迷惑になりますか？静かに話すつもりなんですが、不安です。"
+    "type": "library_room_usage",
+    "questionText": "図書館の学習室の使い方が全然分からないので、最初から教えてほしいです…"
   },
   {
     "position": {
-      "lat": 34.80993722258994,
-      "lng": 135.56151007490794
+      "lat": 34.80957319026305,
+      "lng": 135.56147653984632
     },
-    "type": "studyspace_meeting",
-    "questionText": "zoomでの話し合いあるんだけど、自習室って使って大丈夫かな？適した場所知ってる人いたら教えて🙏"
+    "type": "library_room_usage",
+    "questionText": "図書館の教室って最初に何すれば使えるんですか？利用の流れ知りたいです"
+  },
+  {
+    "position": {
+      "lat": 34.810081240120475,
+      "lng": 135.56295626018783
+    },
+    "type": "library_room_usage",
+    "questionText": "図書館の教室ってオンラインで予約するタイプですか？現地でもできる？"
+  },
+  {
+    "position": {
+      "lat": 34.809498938049614,
+      "lng": 135.56271358404155
+    },
+    "type": "library_room_usage",
+    "questionText": "図書館の学習室って入室方法どうなってるんですか？学生証タッチする感じ？"
+  },
+  {
+    "position": {
+      "lat": 34.80959284308135,
+      "lng": 135.56305565379537
+    },
+    "type": "library_room_usage",
+    "questionText": "初めて図書館の教室使おうと思ってるんですが、利用方法が分からなくて不安です🥲"
+  },
+  {
+    "position": {
+      "lat": 34.81021668357201,
+      "lng": 135.56114829615592
+    },
+    "type": "library_room_usage",
+    "questionText": "図書館の部屋って予約してから実際に使うまでどういう手順なんですか？"
+  },
+    {
+    "position": {
+      "lat": 34.811231459422345,
+      "lng": 135.55964196650572
+    },
+    "type": "manabi_station_location",
+    "questionText": "学びステーションってどこにあるか知ってる人いませんか？事務室の近くにあるって聞いたけど、全然見つからない…"
+  },
+  {
+    "position": {
+      "lat": 34.808438839122296,
+      "lng": 135.56191592444824
+    },
+    "type": "manabi_station_location",
+    "questionText": "すみません、事務室付近にあるという『学びステーション』の場所、ご存じの方いらっしゃいますか？"
+  },
+  {
+    "position": {
+      "lat": 34.81131482899286,
+      "lng": 135.5619822454676
+    },
+    "type": "manabi_station_location",
+    "questionText": "看板とか案内ないから『学びステーション』ってどこにあるのか分からん…ご存じの方教えてください…"
+  },
+  {
+    "position": {
+      "lat": 34.809313512130316,
+      "lng": 135.5616919578002
+    },
+    "type": "manabi_station_location",
+    "questionText": "学びステーションに行きたいのに場所が分からなくて何度もグルグルしてる😢 誰か助けて…"
+  },
+  {
+    "position": {
+      "lat": 34.81169925814407,
+      "lng": 135.56082974169513
+    },
+    "type": "manabi_station_location",
+    "questionText": "公式サイト見たけど『学びステーション』の場所、全然書いてないんだけど！？事務室近くって…どこ？？"
+  },
+  {
+    "position": {
+      "lat": 34.80934613733668,
+      "lng": 135.56222030589515
+    },
+    "type": "manabi_station_location",
+    "questionText": "あの…『学びステーション』って看板も案内もなくないですか？場所分かる方、地図で教えてくれたら神です"
+  },
+  {
+    "position": {
+      "lat": 34.80976357370295,
+      "lng": 135.56118106410744
+    },
+    "type": "manabi_station_location",
+    "questionText": "学びステーションってどこにありますか？今日初めて行くんですけど全然見つからなくて困ってます…"
+  },
+  {
+    "position": {
+      "lat": 34.81000726374585,
+      "lng": 135.5591929646409
+    },
+    "type": "manabi_station_location",
+    "questionText": "学びステーション行きたいんですけど、誰か分かりやすく教えてください😭"
+  },
+  {
+    "position": {
+      "lat": 34.81147618181494,
+      "lng": 135.56139380193872
+    },
+    "type": "manabi_station_location",
+    "questionText": "学びステーションってどの建物の中にありますか？名前はよく聞くけど場所だけ全然知らないです"
+  },
+  {
+    "position": {
+      "lat": 34.81100088206464,
+      "lng": 135.55949636542624
+    },
+    "type": "manabi_station_location",
+    "questionText": "至急です！次の予約あるのに学びステーション見つからない！！誰か助けてください！！"
+  },
+    {
+    "position": {
+      "lat": 34.80945219968052,
+      "lng": 135.56117271777566
+    },
+    "type": "msbase_usage",
+    "questionText": "H棟の1階のでっかいスクリーンどうやって借りるのか？"
+  },
+  {
+    "position": {
+      "lat": 34.80982143535537,
+      "lng": 135.5618977437111
+    },
+    "type": "msbase_usage",
+    "questionText": "H棟1階の大型スクリーン使いたいんですけど、どこに申請すればいいのか分からないです…"
+  },
+  {
+    "position": {
+      "lat": 34.80824678642995,
+      "lng": 135.5613024400763
+    },
+    "type": "msbase_usage",
+    "questionText": "サークルで動画流したいんですけど、H棟1階のスクリーンって勝手に使っちゃダメですよね？予約必要ですか？"
+  },
+  {
+    "position": {
+      "lat": 34.80982574485025,
+      "lng": 135.56137150359797
+    },
+    "type": "msbase_usage",
+    "questionText": "H棟の1階にあるでかいモニター使いたいんですが、学生利用OKなのか気になってます。"
+  },
+  {
+    "position": {
+      "lat": 34.808698971918496,
+      "lng": 135.56218851176232
+    },
+    "type": "msbase_usage",
+    "questionText": "H棟の大型スクリーン借りたことある人います？手続きめんどいですか？"
+  },
+  {
+    "position": {
+      "lat": 34.809900049705455,
+      "lng": 135.56195447545105
+    },
+    "type": "msbase_usage",
+    "questionText": "Microsoft baseっていつも人で賑わってるけど、学生も勝手に使っていい感じ？誰か教えて〜"
+  },
+  {
+    "position": {
+      "lat": 34.808333511109694,
+      "lng": 135.56126607531755
+    },
+    "type": "msbase_usage",
+    "questionText": "このMicrosoft baseって学生が自由に使えるスペースなんでしょうか？公式に決まってるルールとかあるのかな…"
+  },
+  {
+    "position": {
+      "lat": 34.80870464625722,
+      "lng": 135.56106291317764
+    },
+    "type": "msbase_usage",
+    "questionText": "通りかかるたびにMicrosoft baseが使われてるけど、あそこって予約制？"
+  },
+  {
+    "position": {
+      "lat": 34.80889463560135,
+      "lng": 135.56102180182606
+    },
+    "type": "msbase_usage",
+    "questionText": "Microsoft baseって常に誰かいるけど、あれって教職員用？学生も使えるなら助かるんだけど…"
+  },
+  {
+    "position": {
+      "lat": 34.8093910765905,
+      "lng": 135.56127090942533
+    },
+    "type": "msbase_usage",
+    "questionText": "学祭用の宣伝流したいんですけど、H棟1階のスクリーン利用申請ってどこでするんでしょうか？"
+  },
+   {
+    "position": {
+      "lat": 34.81134293129532,
+      "lng": 135.5623999686853
+    },
+    "type": "park_food_policy",
+    "questionText": "岩倉公園ってベンチでコンビニ飯とか食べても大丈夫なんですか？禁止だったりします？"
+  },
+  {
+    "position": {
+      "lat": 34.81140097728162,
+      "lng": 135.5616515139532
+    },
+    "type": "park_food_policy",
+    "questionText": "岩倉公園って、ご飯食べてもいい場所なのかな？貼り紙とか見当たらなくてちょっと不安…。"
+  },
+  {
+    "position": {
+      "lat": 34.81098214170281,
+      "lng": 135.56271825515987
+    },
+    "type": "park_food_policy",
+    "questionText": "ピクニックしたいんだけど、岩倉公園って食事しても大丈夫なとこ？"
+  },
+  {
+    "position": {
+      "lat": 34.80931923054051,
+      "lng": 135.56397642095146
+    },
+    "type": "park_food_policy",
+    "questionText": "岩倉公園で友達とランチしたいけど、食事禁止とかあったら嫌なので、知ってる方いたら教えてください！"
+  },
+  {
+    "position": {
+      "lat": 34.81135343827842,
+      "lng": 135.5638613170354
+    },
+    "type": "park_food_policy",
+    "questionText": "なんとなく座って食べちゃってるけど…岩倉公園って本当にご飯食べていい場所なの？"
+  },
+  {
+    "position": {
+      "lat": 34.810879558134175,
+      "lng": 135.56046872689242
+    },
+    "type": "park_food_policy",
+    "questionText": "ここって飲食OKな公園？岩倉公園でお弁当広げても誰にも怒られないかな…？"
+  },
+  {
+    "position": {
+      "lat": 34.809784440369356,
+      "lng": 135.56193317552226
+    },
+    "type": "park_food_policy",
+    "questionText": "岩倉公園、めっちゃ気持ちいい場所だけど、飲食してたら注意されたりする？経験者いたら教えて！"
+  },
+  {
+    "position": {
+      "lat": 34.81023302471694,
+      "lng": 135.56154590726817
+    },
+    "type": "park_food_policy",
+    "questionText": "学校の近くの岩倉公園、ちょっと静かでランチに最適なんだけど、飲食って許可されてる？"
+  },
+  {
+    "position": {
+      "lat": 34.81001682128693,
+      "lng": 135.561194870241
+    },
+    "type": "park_food_policy",
+    "questionText": "公園でお弁当食べるの好きなんだけど、岩倉公園ってマナー的にアリですか？"
+  },
+  {
+    "position": {
+      "lat": 34.81080411542462,
+      "lng": 135.5603467053266
+    },
+    "type": "park_food_policy",
+    "questionText": "岩倉公園でサンドイッチ食べてたら視線感じたけど…ここって実は食事禁止エリアだったりする？"
+  },
+    {
+    "position": {
+      "lat": 34.80935024574719,
+      "lng": 135.56197002869337
+    },
+    "type": "shuttlebus_location",
+    "questionText": "シャトルバスってどこから乗れるんですか？今日初めてで全然わからないです…"
+  },
+  {
+    "position": {
+      "lat": 34.8101046036677,
+      "lng": 135.5599463302096
+    },
+    "type": "shuttlebus_location",
+    "questionText": "シャトルバスの乗り場ってどこにありますか？"
+  },
+  {
+    "position": {
+      "lat": 34.80964228474153,
+      "lng": 135.5605395439821
+    },
+    "type": "shuttlebus_location",
+    "questionText": "シャトルバスどこですか？"
+  },
+  {
+    "position": {
+      "lat": 34.8111346780477,
+      "lng": 135.56274742280385
+    },
+    "type": "shuttlebus_location",
+    "questionText": "シャトルバスってどこから出てますか？"
+  },
+  {
+    "position": {
+      "lat": 34.80903270718868,
+      "lng": 135.5617957474103
+    },
+    "type": "shuttlebus_location",
+    "questionText": "誰かシャトルバスの場所教えてください🙏"
+  },
+  {
+    "position": {
+      "lat": 34.80870428706069,
+      "lng": 135.56209690842525
+    },
+    "type": "shuttlebus_location",
+    "questionText": "シャトルバス乗り場見つからないんだけどどこ？"
+  },
+  {
+    "position": {
+      "lat": 34.809520390179145,
+      "lng": 135.56016172085594
+    },
+    "type": "shuttlebus_location",
+    "questionText": "キャンパス行きのシャトルバスってどこですか？"
+  },
+  {
+    "position": {
+      "lat": 34.81162989556067,
+      "lng": 135.56069766849163
+    },
+    "type": "shuttlebus_location",
+    "questionText": "シャトルバスの場所わかる人いますか？"
+  },
+  {
+    "position": {
+      "lat": 34.8113884136194,
+      "lng": 135.56157054283216
+    },
+    "type": "shuttlebus_location",
+    "questionText": "シャトルバスって駅のどの辺ですか？"
+  },
+  {
+    "position": {
+      "lat": 34.808413374369174,
+      "lng": 135.56164465468584
+    },
+    "type": "shuttlebus_location",
+    "questionText": "シャトルバスどこにいるんですか笑"
+  },
+   {
+    "position": {
+      "lat": 34.80967003309575,
+      "lng": 135.5615471185368
+    },
+    "type": "textbook_purchase",
+    "questionText": "教科書はどこで買えるの？"
+  },
+  {
+    "position": {
+      "lat": 34.8107416516395,
+      "lng": 135.56052184164506
+    },
+    "type": "textbook_purchase",
+    "questionText": "教科書ってみんなどこで買ってますか？"
+  },
+  {
+    "position": {
+      "lat": 34.80851112692546,
+      "lng": 135.56178481334894
+    },
+    "type": "textbook_purchase",
+    "questionText": "履修登録終わったんですけど、教科書まだ買ってなくて焦ってます。みんなもう買いました？"
+  },
+  {
+    "position": {
+      "lat": 34.80904334548691,
+      "lng": 135.5597369364418
+    },
+    "type": "textbook_purchase",
+    "questionText": "教科書って大学の生協でしか買えない感じですか？Amazonとかでも大丈夫？"
+  },
+  {
+    "position": {
+      "lat": 34.80875936484891,
+      "lng": 135.5619366956476
+    },
+    "type": "textbook_purchase",
+    "questionText": "先生に「教科書買っといて」って言われたけど、どこで売ってるのかわからん…"
+  },
+  {
+    "position": {
+      "lat": 34.80892434509366,
+      "lng": 135.55980976071828
+    },
+    "type": "textbook_purchase",
+    "questionText": "明日の授業で教科書必要らしいんですけど、今からでも買える場所ありますか😭"
+  },
+  {
+    "position": {
+      "lat": 34.81159183859831,
+      "lng": 135.5608442671503
+    },
+    "type": "textbook_purchase",
+    "questionText": "教科書ってどこで買えばいいですか？"
+  },
+  {
+    "position": {
+      "lat": 34.80930844596696,
+      "lng": 135.56094905607804
+    },
+    "type": "textbook_purchase",
+    "questionText": "みんな教科書どこで買ってますか？😭"
+  },
+  {
+    "position": {
+      "lat": 34.81071112280385,
+      "lng": 135.560093968447
+    },
+    "type": "textbook_purchase",
+    "questionText": "大学の教科書ってどこに売ってるんですか？"
+  },
+  {
+    "position": {
+      "lat": 34.80893363428991,
+      "lng": 135.56027475552796
+    },
+    "type": "textbook_purchase",
+    "questionText": "履修した授業の教科書、どこで買えるか教えてほしいです"
   }
 ]
