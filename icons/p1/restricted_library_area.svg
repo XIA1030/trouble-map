@@ -1,7 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg"
-     width="48"
-     height="64"
+width="24"
+height="32"
      viewBox="0 0 48 64">
+  <g transform="translate(4.8,6.4) scale(0.6)">
 
   <!-- 外层水滴 -->
   <path
@@ -40,5 +41,5 @@
     <rect x="14" y="17" width="8" height="5" rx="1"/>
 
   </g>
-
+</g>
 </svg>
