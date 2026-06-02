@@ -1,3 +1,52 @@
+.bottom-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 45vh;
+    max-height: 85vh;
+    min-height: 120px;
+
+    background: #fff;
+    border-radius: 22px 22px 0 0;
+
+    padding: 10px 16px 18px;
+
+    box-shadow: none;   /* ← 改这里 */
+
+    z-index: 9999;
+
+    overflow-y: auto;
+    box-sizing: border-box;
+
+    transform: translateY(0);
+    transition: transform 0.22s ease, height 0.22s ease;
+}
+
+.bottom-sheet.hidden {
+    transform: translateY(110%);
+    pointer-events: none;
+}
+
+.bottom-sheet.dragging {
+    transition: none;
+}
+
+.bottom-sheet-handle {
+    width: 44px;
+    height: 5px;
+    border-radius: 999px;
+    background: #cfcfcf;
+    margin: 0 auto 12px;
+    cursor: grab;
+    touch-action: none;
+}
+
+.bottom-sheet-content {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
 .pin {
     position: relative;
     width: 42px;
@@ -94,4 +143,20 @@
 .pin.dimmed {
     opacity: 0.42;
     filter: saturate(0.65);
+}
+
+.pin.answered.selected .pin-core img {
+    opacity: 0.75;
+}
+
+.pin.selected-answered {
+    transform:
+        translateY(-12px)
+        scale(1.18);
+
+    z-index: 9999;
+}
+
+.pin.answered.selected-answered .pin-core img {
+    opacity: 0.8;
 }

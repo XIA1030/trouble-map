@@ -5,6 +5,12 @@ import {
     addDoc,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyC5S0_zRjNF_Oz65ch3IepPBBa6BUuYMuw",
@@ -17,7 +23,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
+const storage = getStorage(app);
 // main.js - 発問者表示機能（固定ユーザー名とアイコン）追加
 
 let map;
@@ -86,6 +92,8 @@ function initMap() {
         mapId: "DEMO_MAP_ID"
     });
     map.addListener("click", () => {
+
+        closeInfoPanel();
 
         if (activeInfoWindow) {
             activeInfoWindow.close();
@@ -620,275 +628,345 @@ function clearSelection() {
     allMarkers.forEach(m => {
         if (m.content) {
             m.content.classList.remove("selected");
+            m.content.classList.remove("selected-answered");
+            // similarPlusSolved 中，已回答图钉取消选中后恢复 dimmed
+            if (
+                currentCondition === 'similarPlusSolved' &&
+                m.customData.answered
+            ) {
+                m.content.classList.add("dimmed");
+            }
         }
     });
-
     selectedMarkers = [];
 }
 function bindInfoWindow(marker) {
-    const infoWindow = new google.maps.InfoWindow();
-    infoWindow.addListener("closeclick", () => {
-        clearSelection();
-        activeInfoWindow = null;
-    });
-
     marker.addListener("click", () => {
+        const projection = map.getProjection();
+
+        if (projection) {
+            const scale = Math.pow(2, map.getZoom());
+
+            const worldPoint =
+                projection.fromLatLngToPoint(marker.position);
+
+            const newPoint = new google.maps.Point(
+                worldPoint.x,
+                worldPoint.y + 180 / scale
+            );
+
+            const newCenter =
+                projection.fromPointToLatLng(newPoint);
+
+            map.panTo(newCenter);
+        }
+
+        setTimeout(() => {
+            map.panBy(0, -150);
+        }, 100);
+
         logEvent("click_marker", marker.customData.id, {
             type: marker.customData.type,
             content: marker.customData.content,
             answered: marker.customData.answered
         });
 
-        if (activeInfoWindow) activeInfoWindow.close();
-
         selectedMarkers.forEach(m => {
             m.content.classList.remove("selected");
         });
+
         selectedMarkers = [];
         clearSelection();
 
-        if (currentCondition === 'similarPlusSolved') {
-            document.body.classList.add("map-has-selection");
-        }
-        if (currentCondition === 'similarPlusSolved') {
-            // 👇 现在不再用“20m 圆形邻域”，改成“所在簇的全体成员”
-            const selected = getClusterMembers(marker, true);
-            if (currentCondition === 'similarPlusSolved') {
+if (currentCondition === 'similarPlusSolved') {
 
-                selected.forEach(m => {
-                    m.content.classList.add("selected");
-                });
+    if (marker.customData.answered) {
+        // 已回答图钉：只让自己变成“已回答的选中状态”
+        // 不添加 map-has-selection，所以其他图钉不会变透明
+        marker.content.classList.remove("dimmed");
+        marker.content.classList.add("selected");
+        selectedMarkers = [marker];
 
-            }
-            selectedMarkers = selected;
-        }
+    } else {
+        // 未回答图钉：保持原来的类似投稿选中效果
+        // 其他图钉会变透明
+        document.body.classList.add("map-has-selection");
 
+        const selected = getClusterMembers(marker, true);
+
+        selected.forEach(m => {
+            m.content.classList.add("selected");
+        });
+
+        selectedMarkers = selected;
+    }
+}
 
         const group = getClusterMembers(marker, true);
         const avatar = avatarMap[marker.customData.id % Object.keys(avatarMap).length];
         const timeStr = timeAgo(marker.customData.createdAt);
+
         const timeBadge = `
-      <span id="time_${marker.customData.id}" 
-            style="color:#888; font-size:12px;">${timeStr}</span>`;
-        /*const likeBadge = `
-  <span
-    id="likeWrap_${marker.customData.id}"
-    style="
-      display:inline-flex; align-items:center; gap:4px;
-      background:#ffeef0; color:#d6336c;
-      padding:2px 8px; border-radius:12px; font-size:12px;
-      user-select:none; cursor:default;
-    "
-    role="status" aria-label="いいね数"
-  >
-    <span aria-hidden="true">❤️</span>
-    <span id="like_${marker.customData.id}">${marker.customData.likeCount}</span>
-  </span>`;*/
+            <span id="time_${marker.customData.id}" 
+                style="color:#888; font-size:12px;">${timeStr}</span>
+        `;
 
-
-
+        let contentHtml = "";
 
         if (!marker.customData.answered) {
-            let contentHtml = `
+            contentHtml = `
                 <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-  <div style="display:flex; align-items:center; gap:10px;">
-    <img src="${avatar.avatar}" width="32" height="32" style="border-radius:50%;">
-    <strong>${avatar.name} さん</strong>
-  </div>
-  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-    ${timeBadge}
-    
-  </div>
-</div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="${avatar.avatar}" width="32" height="32" style="border-radius:50%;">
+                        <strong>${avatar.name} さん</strong>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        ${timeBadge}
+                    </div>
+                </div>
 
-
-                <p style="margin-top:5px; white-space:normal; overflow-wrap:break-word; word-break:break-word;">「${marker.customData.content}」</p>`;
+                <p style="margin-top:5px; white-space:normal; overflow-wrap:break-word; word-break:break-word;">
+                    「${marker.customData.content}」
+                </p>
+            `;
 
             if (currentCondition === 'similarPlusSolved') {
                 const count = group.length;
-                const peopleBadge = `
-    <div style="
-        font-size: 13px;
-        color: #a05a00;
-        margin-top: 8px;
-    ">
-        📍 <span style="
-            display: inline-block;
-            background-color: #ffa726;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 13px;
-            margin-right: 4px;
-        ">${count}人</span>がこのエリアで同じ種類の困りごとを投稿しています！
-    </div>
-`;
 
-                contentHtml += peopleBadge;
+                contentHtml += `
+                    <div style="
+                        font-size: 13px;
+                        color: #a05a00;
+                        margin-top: 8px;
+                    ">
+                        📍 <span style="
+                            display: inline-block;
+                            background-color: #ffa726;
+                            color: white;
+                            padding: 2px 8px;
+                            border-radius: 12px;
+                            font-weight: bold;
+                            font-size: 13px;
+                            margin-right: 4px;
+                        ">${count}人</span>がこのエリアで同じ種類の困りごとを投稿しています！
+                    </div>
+                `;
             }
-
 
             contentHtml += `
-  <div style="margin-top: 10px;">
-    <textarea id="response_${marker.customData.id}"
-      placeholder="ここに入力してください"
-      style="
-        width: 100%;
-        height: 60px;
-        font-size: 14px;
-        padding: 6px 10px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        box-sizing: border-box;
-        resize: vertical;
-      "
-    ></textarea>
-  </div>
-  <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-    <button onclick="submitResponse(${marker.customData.id})"
-      style="
-        padding: 8px 16px;
-        background-color: #f0f2f5;
-        color: #333;
-        border: 1px solid #ccc;
-        border-radius: 20px;
-        font-size: 14px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-      "
-      onmouseover="this.style.backgroundColor='#e1e4e8'"
-      onmouseout="this.style.backgroundColor='#f0f2f5'"
-    >送信</button>
-  </div>
-`;
-
-
-            infoWindow.setContent(`
-    <div style="
-      width: 260px;
-      max-width: calc(100vw - 40px);
-      box-sizing: border-box;
-      padding: 14px;
-      border-radius: 14px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      font-family: 'Helvetica Neue', sans-serif;
-      font-size: 14px;
-      line-height: 1.5;
-      background: white;
-      overflow: hidden;
-      overflow-wrap: break-word;
-      word-break: break-word;
+                <div style="margin-top: 10px;">
+                    <textarea id="response_${marker.customData.id}"
+                        placeholder="ここに入力してください"
+                        style="
+                            width: 100%;
+                            height: 60px;
+                            font-size: 14px;
+                            padding: 6px 10px;
+                            border: 1px solid #ccc;
+                            border-radius: 8px;
+                            box-sizing: border-box;
+                            resize: vertical;
+                        "
+                    ></textarea>
+                </div>
+<div style="margin-top: 10px;">
+    <label style="
+        display:inline-block;
+        padding:8px 12px;
+        background:#fff;
+        border:1px solid #ccc;
+        border-radius:18px;
+        font-size:13px;
+        cursor:pointer;
     ">
-      ${contentHtml}
-    </div>
-  `);
+        📷 写真を追加
+        <input
+            id="photo_${marker.customData.id}"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            style="display:none;"
+            onchange="previewPhoto(${marker.customData.id})"
+        >
+    </label>
 
-
+    <div id="photoPreview_${marker.customData.id}" style="margin-top:8px;"></div>
+</div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                    <button onclick="submitResponse(${marker.customData.id})"
+                        style="
+                            padding: 8px 16px;
+                            background-color: #f0f2f5;
+                            color: #333;
+                            border: 1px solid #ccc;
+                            border-radius: 20px;
+                            font-size: 14px;
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+                            cursor: pointer;
+                        "
+                    >送信</button>
+                </div>
+            `;
         } else {
-            let badgeHtml = '';
+            let badgeHtml = "";
+
             if (currentCondition === 'similarPlusSolved' && marker.customData.answeredByUser) {
                 const helpCount = getClusterMembers(marker, true).length;
+
                 badgeHtml = `
-        <div style="
-            background: #e6f5ea;
-            color: #256029;
-            margin-top: 10px;
-            padding: 8px 12px;
-            border-radius: 10px;
-            border-left: 4px solid #4caf50;
-            font-size: 13px;
-        ">
-            👏 この回答で <strong>${helpCount}</strong> 人が助けられました！
-        </div>
-    `;
+                    <div style="
+                        background: #e6f5ea;
+                        color: #256029;
+                        margin-top: 10px;
+                        padding: 8px 12px;
+                        border-radius: 10px;
+                        border-left: 4px solid #4caf50;
+                        font-size: 13px;
+                    ">
+                        👏 この回答で <strong>${helpCount}</strong> 人が助けられました！
+                    </div>
+                `;
             }
 
+            contentHtml = `
+                <div style="display:flex; align-items:flex-start; gap:10px; justify-content:space-between; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="${avatar.avatar}" width="32" height="32" style="border-radius:50%;">
+                        <strong>${avatar.name} さん</strong>
+                    </div>
 
-            const contentHtml = `
-        <div style="display:flex; align-items:flex-start; gap:10px; justify-content:space-between; flex-wrap:wrap;">
-  <div style="display:flex; align-items:center; gap:10px;">
-    <img src="${avatar.avatar}" width="32" height="32" style="border-radius:50%;">
-    <strong>${avatar.name} さん</strong>
-  </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        ${timeBadge}
+                    </div>
+                </div>
 
-  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-    ${timeBadge}
-    
-    <button id="toggleBtn_${marker.customData.id}" onclick="toggleQuestion(${marker.customData.id})"
-      style="
-        font-size: 12px;
-        padding: 2px 8px;
-        border: none;
-        background-color: #f0f0f0;
-        border-radius: 12px;
-        cursor: pointer;
-      "
-    >原文</button>
-  </div>
-</div>
+                <div style="margin: 6px 0 10px 0; color: #555; font-size: 13px;">
+                    「${marker.customData.content}」
+                </div>
 
-<div style="margin: 6px 0 10px 0; color: #555; font-size: 13px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
-  「${marker.customData.content}」
-</div>
+                <div style="margin-top: 4px; font-size: 14px; color: #000;">
+                    助けてくれて、本当にありがとう！すごく参考になりました！
+                </div>
 
-<!-- 感谢语：黑色、与用户名一致 -->
-<div style="margin-top: 4px; font-size: 14px; color: #000;">
-  助けてくれて、本当にありがとう！すごく参考になりました！
+                <div style="margin-top: 6px; font-size: 13px; color: #444; display: flex; justify-content: space-between; align-items: center;">
+                    <span>✏️ <span style="color: #555;">投稿内容：</span></span>
+                    <button id="editBtn_${marker.customData.id}" onclick="editResponse(${marker.customData.id})"
+                        style="font-size: 12px; padding: 2px 8px; border: none; background-color: #eee; border-radius: 12px; cursor: pointer;">
+                        編集
+                    </button>
+                </div>
 
-</div>
+                <div id="responseView_${marker.customData.id}" style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
+                    ${marker.customData.responseText}
+                    ${marker.customData.photoUrl ? `
+    <img src="${marker.customData.photoUrl}" style="
+        width:100%;
+        margin-top:8px;
+        border-radius:10px;
+        border:1px solid #ddd;
+    ">
+` : ""}
+                </div>
 
+                <div id="responseEdit_${marker.customData.id}" style="display: none; margin-top: 6px;">
+                    <textarea id="editInput_${marker.customData.id}" style="width: 100%; font-size: 13px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box;">${marker.customData.responseText}</textarea>
 
-        <div style="margin-top: 6px; font-size: 13px; color: #444; display: flex; justify-content: space-between; align-items: center;">
-            <span>✏️ <span style="color: #555;">投稿内容：</span></span>
-            <button id="editBtn_${marker.customData.id}" onclick="editResponse(${marker.customData.id})"
-                style="font-size: 12px; padding: 2px 8px; border: none; background-color: #eee; border-radius: 12px; cursor: pointer;">編集</button>
-        </div>
+                    <div style="text-align: right; margin-top: 4px;">
+                        <button onclick="cancelEdit(${marker.customData.id})"
+                            style="font-size: 12px; padding: 4px 10px; border: none; background-color: #eee; color: #333; border-radius: 14px; cursor: pointer; margin-right: 6px;">
+                            キャンセル
+                        </button>
 
-        <div id="responseView_${marker.customData.id}" style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
-            ${marker.customData.responseText}
-        </div>
+                        <button onclick="saveResponse(${marker.customData.id})"
+                            style="font-size: 12px; padding: 4px 10px; border: none; background-color: #4caf50; color: white; border-radius: 14px; cursor: pointer;">
+                            保存
+                        </button>
+                    </div>
+                </div>
 
-        <div id="responseEdit_${marker.customData.id}" style="display: none; margin-top: 6px;">
-            <textarea id="editInput_${marker.customData.id}" style="width: 100%; font-size: 13px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box;">${marker.customData.responseText}</textarea>
-            <div style="text-align: right; margin-top: 4px;">
-                <button onclick="cancelEdit(${marker.customData.id})"
-                    style="font-size: 12px; padding: 4px 10px; border: none; background-color: #eee; color: #333; border-radius: 14px; cursor: pointer; margin-right: 6px;">キャンセル</button>
-                <button onclick="saveResponse(${marker.customData.id})"
-                    style="font-size: 12px; padding: 4px 10px; border: none; background-color: #4caf50; color: white; border-radius: 14px; cursor: pointer;">保存</button>
-            </div>
-        </div>
-
-        ${badgeHtml}
-    `;
-
-            infoWindow.setContent(`
-        <div style="
-            width: 260px;
-            max-width: calc(100vw - 40px);
-            box-sizing: border-box;
-            padding: 10px 14px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            font-family: sans-serif;
-            font-size: 14px;
-            background: white;
-            overflow: hidden;
-            overflow-wrap: break-word;
-            word-break: break-word;
-        ">
-            ${contentHtml}
-        </div>
-    `);
+                ${badgeHtml}
+            `;
         }
 
-
-        infoWindow.open(map, marker);
+        showInfoPanel(contentHtml);
         startTimeTicker(marker);
-        activeInfoWindow = infoWindow;
     });
-    marker.infoWindow = infoWindow;
+}
+function showInfoPanel(html) {
+    const panel = document.getElementById("infoPanel");
+
+    panel.innerHTML = `
+        <div class="bottom-sheet-handle"></div>
+
+        <div class="bottom-sheet-content">
+            ${html}
+        </div>
+    `;
+
+    panel.classList.remove("hidden");
+
+    enableBottomSheetDrag(panel);
+}
+
+function enableBottomSheetDrag(panel) {
+    const handle = panel.querySelector(".bottom-sheet-handle");
+
+    let startY = 0;
+    let startHeight = 0;
+    let isDragging = false;
+
+    handle.addEventListener("pointerdown", (e) => {
+        isDragging = true;
+        startY = e.clientY;
+        startHeight = panel.getBoundingClientRect().height;
+
+        panel.classList.add("dragging");
+        handle.setPointerCapture(e.pointerId);
+    });
+
+    handle.addEventListener("pointermove", (e) => {
+        if (!isDragging) return;
+
+        const deltaY = e.clientY - startY;
+        const newHeight = startHeight - deltaY;
+
+        const minHeight = 120;
+        const maxHeight = window.innerHeight * 0.85;
+
+        if (newHeight >= minHeight && newHeight <= maxHeight) {
+            panel.style.height = `${newHeight}px`;
+        }
+    });
+
+    handle.addEventListener("pointerup", (e) => {
+        if (!isDragging) return;
+
+        isDragging = false;
+        panel.classList.remove("dragging");
+        handle.releasePointerCapture(e.pointerId);
+
+        const currentHeight = panel.getBoundingClientRect().height;
+
+        if (currentHeight < 150) {
+            closeInfoPanel();
+        } else if (currentHeight < window.innerHeight * 0.35) {
+            panel.style.height = "32vh";
+        } else if (currentHeight > window.innerHeight * 0.65) {
+            panel.style.height = "82vh";
+        } else {
+            panel.style.height = "45vh";
+        }
+    });
+}
+
+function closeInfoPanel() {
+    const panel = document.getElementById("infoPanel");
+
+    panel.classList.add("hidden");
+    panel.innerHTML = "";
+    panel.style.height = "45vh";
+
+    clearSelection();
 }
 function showToast(message) {
     const toast = document.createElement('div');
@@ -923,16 +1001,58 @@ function showToast(message) {
     }, 2000);
 }
 
+function previewPhoto(id) {
+    const fileInput = document.getElementById(`photo_${id}`);
+    const preview = document.getElementById(`photoPreview_${id}`);
 
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) return;
+
+    const file = fileInput.files[0];
+    const url = URL.createObjectURL(file);
+
+    preview.innerHTML = `
+        <img src="${url}" style="
+            width:100%;
+            max-height:180px;
+            object-fit:cover;
+            border-radius:10px;
+            border:1px solid #ddd;
+        ">
+    `;
+}
+
+async function uploadAnswerPhoto(id) {
+    const fileInput = document.getElementById(`photo_${id}`);
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        return null;
+    }
+
+    const file = fileInput.files[0];
+    const filePath = `answer_photos/${sessionId}/post_${id}_${Date.now()}_${file.name}`;
+    const storageRef = ref(storage, filePath);
+
+    await uploadBytes(storageRef, file);
+
+    return await getDownloadURL(storageRef);
+}
 async function submitResponse(id) {
     const marker = allMarkers.find(m => m.customData.id === id);
     const input = document.getElementById(`response_${id}`);
     const responseText = input.value.trim();
-    if (responseText === '') {
-        showToast('⚠️ 内容を入力してください！');
+    const photoInput = document.getElementById(`photo_${id}`);
+    const hasPhoto = photoInput && photoInput.files && photoInput.files.length > 0;
+
+    if (responseText === '' && !hasPhoto) {
+        showToast('⚠️ 内容または写真を追加してください！');
         return;
     }
+
+    let photoUrl = null;
+
     try {
+        photoUrl = await uploadAnswerPhoto(id);
+
         await addDoc(collection(db, "answers"), {
             f1_user_name: userName,
             f2_session_id: sessionId,
@@ -941,25 +1061,29 @@ async function submitResponse(id) {
             f5_answer_text: responseText,
             f6_answer_length: responseText.length,
             f7_post_id: id,
-            f8_timestamp: serverTimestamp()
+            f8_photo_url: photoUrl,
+            f9_has_photo: !!photoUrl,
+            f10_timestamp: serverTimestamp()
         });
 
         logEvent("submit_answer", id, {
-            answer_length: responseText.length
+            answer_length: responseText.length,
+            has_photo: !!photoUrl
         });
+
     } catch (error) {
         console.error("回答保存エラー:", error);
         showToast("⚠️ 回答は画面上に反映しましたが、Firebase保存に失敗しました");
     }
-    const sameTypeNearby = getClusterMembers(marker, true);
 
+    const sameTypeNearby = getClusterMembers(marker, true);
 
     sameTypeNearby.forEach(m => {
         m.customData.answered = true;
         m.customData.responseText = responseText;
+        m.customData.photoUrl = photoUrl;
         m.customData.answeredByUser = false;
 
-        // 只有「類似投稿＋解決人数」才显示已回答视觉效果
         if (currentCondition === 'similarPlusSolved') {
             m.content.classList.add("answered");
             m.content.classList.add("dimmed");
@@ -969,117 +1093,11 @@ async function submitResponse(id) {
             m.content.classList.remove("selected");
         }
     });
+
     marker.customData.answeredByUser = true;
-    // 只更新用户点击并回答的 marker 的 infoWindow
-    if (marker.infoWindow && marker.infoWindow.getMap()) {
-        if (currentCondition === 'similarPlusSolved') {
-            const helpCount = sameTypeNearby.length;
-            const badgeHtml = `
-            <div style="
-                background: #e6f5ea;
-                color: #256029;
-                margin-top: 10px;
-                padding: 8px 12px;
-                border-radius: 10px;
-                border-left: 4px solid #4caf50;
-                font-size: 13px;
-            ">
-                👏 この回答で <strong>${helpCount}</strong> 人が助けられました！
-            </div>
-        `;
 
-            marker.infoWindow.setContent(`
-            <div style="width: 260px; max-width: calc(100vw - 40px); font-family: sans-serif; font-size: 14px; padding: 10px; box-sizing: border-box; overflow: hidden; overflow-wrap: break-word; word-break: break-word;">
-            
-            <p><strong>ご回答ありがとうございます!</strong></p>
-                <div style="margin-top: 6px; font-size: 13px; color: #444;">
-                    ✏️ <span style="color: #555;">投稿内容：</span><br>
-                    <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
-                        ${marker.customData.responseText}
-                    </div>
-                </div>
-                ${badgeHtml}
-            </div>
-        `);
+    google.maps.event.trigger(marker, 'click');
 
-        } else {
-            marker.infoWindow.setContent(`
-            <div style="width: 260px; max-width: calc(100vw - 40px); font-family: sans-serif; font-size: 14px; padding: 10px; box-sizing: border-box; overflow: hidden; overflow-wrap: break-word; word-break: break-word;">
-            
-            <p><strong>ご回答ありがとうございます!</strong></p>
-                <div style="margin-top: 6px; font-size: 13px; color: #444;">
-                    ✏️ <span style="color: #555;">投稿内容：</span><br>
-                    <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
-                        ${marker.customData.responseText}
-                    </div>
-                </div>
-            </div>
-        `);
-
-        }
-    }
-
-
-    // === 如果是类似投稿＋解決人数提示，显示徽章 + Toast ===
-    if (currentCondition === 'similarPlusSolved') {
-        const helpCount = sameTypeNearby.length;
-
-        const badgeHtml = `
-                <div style="
-                    background: #e6f5ea;
-                    color: #256029;
-                    margin-top: 10px;
-                    padding: 8px 12px;
-                    border-radius: 10px;
-                    border-left: 4px solid #4caf50;
-                    font-size: 13px;
-                ">
-                    👏 この回答で <strong>${helpCount}</strong> 人が助けられました！
-                </div>
-            `;
-
-        marker.infoWindow.setContent(`
-                <div style="
-                    width: 260px;
-                    max-width: calc(100vw - 40px);
-                    font-family: sans-serif;
-                    font-size: 14px;
-                    padding: 10px;
-                    box-sizing: border-box;
-                    overflow: hidden;
-                    overflow-wrap: break-word;
-                    word-break: break-word;
-                ">
-                
-                    <p><strong>ご回答ありがとうございます!</strong></p>
-                    <div style="margin-top: 6px; font-size: 13px; color: #444;">
-  ✏️ <span style="color: #555;">投稿内容：</span><br>
-  <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
-    ${marker.customData.responseText}
-  </div>
-</div>
-                    ${badgeHtml}
-                </div>
-            `);
-
-
-
-    } else {
-        marker.infoWindow.setContent(`
-                <div style="width: 260px; max-width: calc(100vw - 40px); font-family: sans-serif; font-size: 14px; padding: 10px; box-sizing: border-box; overflow: hidden; overflow-wrap: break-word; word-break: break-word;">
-                
-                <p><strong>ご回答ありがとうございます!</strong></p>
-                    <div style="margin-top: 6px; font-size: 13px; color: #444;">
-  ✏️ <span style="color: #555;">投稿内容：</span><br>
-  <div style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px; white-space: normal; overflow-wrap: break-word; word-break: break-word;">
-    ${marker.customData.responseText}
-  </div>
-</div>
-                </div>
-            `);
-
-    }
-    // 弹出气球提示
     showToast('🎉 回答送信完了！ありがとうございます！');
 }
 
@@ -1149,5 +1167,7 @@ window.toggleQuestion = toggleQuestion;
 window.editResponse = editResponse;
 window.cancelEdit = cancelEdit;
 window.saveResponse = saveResponse;
+window.closeInfoPanel = closeInfoPanel;
+window.previewPhoto = previewPhoto;
 
 window.addEventListener("load", initMap);

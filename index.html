@@ -30,27 +30,74 @@
             width: 100%;
         }
 
+        #headerBar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            background-color: #f0f0f0;
+            padding: 10px;
+
+            position: relative;
+        }
+
+        #headerBar h1 {
+            margin: 0;
+            font-size: 24px;
+            background: none;
+            padding: 0;
+        }
+
+        #controls h3 {
+            font-size: 12px;
+            margin: 8px 0 5px;
+        }
+
+        #controls button {
+            display: block;
+            width: 100%;
+            margin: 4px 0;
+            padding: 8px 6px;
+
+            font-size: 12px;
+            text-align: left;
+        }
+
         #testToggle {
             padding: 6px 12px;
-            margin: 10px 10px 0 10px;
-            /* 上右下左，底部间距为0 */
+
             background-color: #ffcccc;
             color: #333;
+
             border: 1px solid #aaa;
+            border-radius: 20px;
+
+            font-size: 12px;
             cursor: pointer;
         }
 
         #admin-controls {
-            padding: 10px;
-            margin-top: 0;
-            /* 去除与按钮之间的空行 */
             display: none;
-        }
 
+            position: absolute;
+            top: 100%;
+            right: 10px;
+
+            width: 220px;
+            padding: 10px;
+
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+
+            z-index: 1000;
+
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
 
         button {
             font-size: 12px;
-            padding: 3px 7x;
+            padding: 3px 7px;
             margin-right: 5px;
             margin-bottom: 4px;
         }
@@ -89,23 +136,31 @@
 </head>
 
 <body>
-    <h1>TROUBLE MAP</h1>
+    <div id="headerBar">
+        <h1>TROUBLE MAP</h1>
 
-    <div id="map"></div>
-    <button id="testToggle" onclick="toggleControls()">【テスト用】押さないでください</button>
-    <div id="admin-controls">
-        <div id="controls">
-            <h3>困りごとパターンの選択</h3>
-            <button onclick="switchPattern('pattern1')">パターン1</button>
-            <button onclick="switchPattern('pattern2')">パターン2</button>
-            <button onclick="switchPattern('pattern3')">パターン3</button>
+        <button id="testToggle" onclick="toggleControls()">
+            実験用（押さないで）
+        </button>
 
-            <h3>UI条件の選択</h3>
-            <button onclick="switchCondition('noHint')">無提示</button>
-            <button onclick="switchCondition('similarHint')">類似投稿提示</button>
-            <button onclick="switchCondition('similarPlusSolved')">類似投稿＋解決人数</button>
+        <div id="admin-controls">
+            <div id="controls">
+                <h3>困りごとパターンの選択</h3>
+                <button onclick="switchPattern('pattern1')">パターン1</button>
+                <button onclick="switchPattern('pattern2')">パターン2</button>
+                <button onclick="switchPattern('pattern3')">パターン3</button>
+
+                <h3>UI条件の選択</h3>
+                <button onclick="switchCondition('noHint')">無提示</button>
+                <button onclick="switchCondition('similarHint')">類似投稿提示</button>
+                <button onclick="switchCondition('similarPlusSolved')">類似投稿＋解決人数</button>
+            </div>
         </div>
     </div>
+
+    <div id="map"></div>
+    <div id="infoPanel" class="bottom-sheet hidden"></div>
+    
     <script>
         function toggleControls() {
             const controls = document.getElementById("admin-controls");
