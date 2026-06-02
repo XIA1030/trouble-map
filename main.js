@@ -5,12 +5,7 @@ import {
     addDoc,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyC5S0_zRjNF_Oz65ch3IepPBBa6BUuYMuw",
@@ -23,7 +18,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
+
 // main.js - 発問者表示機能（固定ユーザー名とアイコン）追加
 
 let map;
@@ -769,29 +764,7 @@ if (currentCondition === 'similarPlusSolved') {
                         "
                     ></textarea>
                 </div>
-<div style="margin-top: 10px;">
-    <label style="
-        display:inline-block;
-        padding:8px 12px;
-        background:#fff;
-        border:1px solid #ccc;
-        border-radius:18px;
-        font-size:13px;
-        cursor:pointer;
-    ">
-        📷 写真を追加
-        <input
-            id="photo_${marker.customData.id}"
-            type="file"
-            accept="image/*"
-            capture="environment"
-            style="display:none;"
-            onchange="previewPhoto(${marker.customData.id})"
-        >
-    </label>
 
-    <div id="photoPreview_${marker.customData.id}" style="margin-top:8px;"></div>
-</div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
                     <button onclick="submitResponse(${marker.customData.id})"
                         style="
@@ -858,14 +831,7 @@ if (currentCondition === 'similarPlusSolved') {
 
                 <div id="responseView_${marker.customData.id}" style="margin-top: 4px; background: #f7f7f7; border-radius: 6px; padding: 6px 10px;">
                     ${marker.customData.responseText}
-                    ${marker.customData.photoUrl ? `
-    <img src="${marker.customData.photoUrl}" style="
-        width:100%;
-        margin-top:8px;
-        border-radius:10px;
-        border:1px solid #ddd;
-    ">
-` : ""}
+
                 </div>
 
                 <div id="responseEdit_${marker.customData.id}" style="display: none; margin-top: 6px;">
@@ -1001,57 +967,21 @@ function showToast(message) {
     }, 2000);
 }
 
-function previewPhoto(id) {
-    const fileInput = document.getElementById(`photo_${id}`);
-    const preview = document.getElementById(`photoPreview_${id}`);
 
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) return;
 
-    const file = fileInput.files[0];
-    const url = URL.createObjectURL(file);
 
-    preview.innerHTML = `
-        <img src="${url}" style="
-            width:100%;
-            max-height:180px;
-            object-fit:cover;
-            border-radius:10px;
-            border:1px solid #ddd;
-        ">
-    `;
-}
-
-async function uploadAnswerPhoto(id) {
-    const fileInput = document.getElementById(`photo_${id}`);
-
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        return null;
-    }
-
-    const file = fileInput.files[0];
-    const filePath = `answer_photos/${sessionId}/post_${id}_${Date.now()}_${file.name}`;
-    const storageRef = ref(storage, filePath);
-
-    await uploadBytes(storageRef, file);
-
-    return await getDownloadURL(storageRef);
-}
 async function submitResponse(id) {
     const marker = allMarkers.find(m => m.customData.id === id);
     const input = document.getElementById(`response_${id}`);
     const responseText = input.value.trim();
-    const photoInput = document.getElementById(`photo_${id}`);
-    const hasPhoto = photoInput && photoInput.files && photoInput.files.length > 0;
+if (responseText === '') {
+    showToast('⚠️ 内容を入力してください！');
+    return;
+}
 
-    if (responseText === '' && !hasPhoto) {
-        showToast('⚠️ 内容または写真を追加してください！');
-        return;
-    }
-
-    let photoUrl = null;
 
     try {
-        photoUrl = await uploadAnswerPhoto(id);
+
 
         await addDoc(collection(db, "answers"), {
             f1_user_name: userName,
@@ -1061,14 +991,12 @@ async function submitResponse(id) {
             f5_answer_text: responseText,
             f6_answer_length: responseText.length,
             f7_post_id: id,
-            f8_photo_url: photoUrl,
-            f9_has_photo: !!photoUrl,
-            f10_timestamp: serverTimestamp()
+            f8_timestamp: serverTimestamp()
         });
 
         logEvent("submit_answer", id, {
             answer_length: responseText.length,
-            has_photo: !!photoUrl
+
         });
 
     } catch (error) {
@@ -1081,7 +1009,6 @@ async function submitResponse(id) {
     sameTypeNearby.forEach(m => {
         m.customData.answered = true;
         m.customData.responseText = responseText;
-        m.customData.photoUrl = photoUrl;
         m.customData.answeredByUser = false;
 
         if (currentCondition === 'similarPlusSolved') {
@@ -1168,6 +1095,5 @@ window.editResponse = editResponse;
 window.cancelEdit = cancelEdit;
 window.saveResponse = saveResponse;
 window.closeInfoPanel = closeInfoPanel;
-window.previewPhoto = previewPhoto;
 
 window.addEventListener("load", initMap);
