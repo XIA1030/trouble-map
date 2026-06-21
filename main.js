@@ -318,17 +318,33 @@ function loadAvatars(callback) {
             callback();
         });
 }
+
 function createPinElement(iconUrl) {
     const pin = document.createElement("div");
     pin.className = "pin";
 
-    pin.innerHTML = `
-        <div class="focus-halo"></div>
-        <div class="orbit-ring"></div>
-        <div class="pin-core">
-            <img src="${iconUrl}">
-        </div>
-    `;
+    const halo = document.createElement("div");
+    halo.className = "focus-halo";
+
+    const ring = document.createElement("div");
+    ring.className = "orbit-ring";
+
+    const core = document.createElement("div");
+    core.className = "pin-core";
+
+    const img = document.createElement("img");
+    img.src = iconUrl;
+    img.alt = "marker icon";
+
+    img.onerror = () => {
+        console.error("图标加载失败:", iconUrl);
+        img.src = "./icons/question.svg";
+    };
+
+    core.appendChild(img);
+    pin.appendChild(halo);
+    pin.appendChild(ring);
+    pin.appendChild(core);
 
     return pin;
 }
@@ -370,19 +386,32 @@ function loadDataAndDisplayMarkers(pattern, condition) {
 
 
 function getIconForMarker(markerData, condition, plain = false, highlight = false) {
-    if (condition === 'noHint') {
-        return './icons/question.svg';
-    } else {
-        const folder = currentPattern === 'pattern1' ? 'p1'
-            : currentPattern === 'pattern2' ? 'p2'
-                : currentPattern === 'pattern3' ? 'p3'
-                    : 'p1';
+    const type = String(markerData.type || "").trim();
 
-        const suffix = highlight ? '_hl' : plain ? '_plain' : '';
-        return `./icons/${folder}/${markerData.type}${suffix}.svg`;
+    if (!type) {
+        console.warn("markerData.type 为空:", markerData);
+        return "./icons/question.svg";
     }
-}
 
+    if (condition === "noHint") {
+        return "./icons/question.svg";
+    }
+
+    const folderMap = {
+        pattern1: "p1",
+        pattern2: "p2",
+        pattern3: "p3"
+    };
+
+    const folder = folderMap[currentPattern] || "p1";
+    const suffix = highlight ? "_hl" : plain ? "_plain" : "";
+
+    const iconPath = `./icons/${folder}/${type}${suffix}.svg`;
+
+    console.log("当前图标路径:", iconPath);
+
+    return iconPath;
+}
 function clearMarkers() {
     // 清掉地图上的 marker
     allMarkers.forEach(marker => {
