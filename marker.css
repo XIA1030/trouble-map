@@ -4,16 +4,16 @@
     right: 0;
     bottom: 0;
 
-    height: 45vh;
-    max-height: 85vh;
-    min-height: 120px;
+    height: 32vh;
+    max-height: 68vh;
+    min-height: 170px;
 
     background: #fff;
-    border-radius: 22px 22px 0 0;
+    border-radius: 18px 18px 0 0;
 
-    padding: 10px 16px 18px;
+    padding: 8px 14px 14px;
 
-    box-shadow: none;   /* ← 改这里 */
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.12);
 
     z-index: 9999;
 
