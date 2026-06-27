@@ -3,6 +3,8 @@ import {
     getFirestore,
     collection,
     addDoc,
+    doc,
+    setDoc,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
@@ -33,6 +35,10 @@ let myPosMarker = null;       // 現在地マーカー
 let myAccuracyCircle = null;  // 位置精度円
 let geoWatchId = null;        // watchPosition のID
 let firstFix = true;          // 最初の測位で地図を寄せる
+// === 行動軌跡記録用 ===
+let lastTrajectorySavedTime = 0;          // 最後に軌跡を保存した時刻
+const TRAJECTORY_INTERVAL_MS = 5000;      // 5秒ごとに保存
+const MAX_TRAJECTORY_ACCURACY = 50;       // 精度50m以内の点だけ保存
 // 👇 逻辑聚类用的全局表
 let clusters = [];                 // [{id: 0, type: 'xxx', members: [marker, ...]}, ...]
 let markerIdToClusterId = {};      // { marker.customData.id : clusterId }
@@ -54,7 +60,27 @@ while (!["1", "2", "3"].includes(experimentRound)) {
 }
 
 let sessionId = userName + "_" + experimentRound;
+function makeReadableDocId(prefix, postId = null) {
+    const now = new Date();
 
+    const timeText =
+        now.getFullYear().toString() +
+        String(now.getMonth() + 1).padStart(2, "0") +
+        String(now.getDate()).padStart(2, "0") + "_" +
+        String(now.getHours()).padStart(2, "0") +
+        String(now.getMinutes()).padStart(2, "0") +
+        String(now.getSeconds()).padStart(2, "0") +
+        "_" +
+        String(now.getMilliseconds()).padStart(3, "0");
+
+    const safeSessionId = sessionId.replace(/[\/.#$[\]\s]/g, "_");
+
+    if (postId !== null) {
+        return `${safeSessionId}_${prefix}_post${postId}_${timeText}`;
+    }
+
+    return `${safeSessionId}_${prefix}_${timeText}`;
+}
 async function logEvent(eventType, postId = null, extraInfo = {}) {
     try {
         await addDoc(collection(db, "user_events"), {
@@ -196,19 +222,26 @@ function randomInt(min, max) {
 // === 現在地の追跡を開始 ===
 function startGeolocation() {
     if (!navigator.geolocation) {
-        console.warn('Geolocation not supported');
-        showToast('⚠️ この端末では現在地を取得できません');
+        console.warn("Geolocation not supported");
+        showToast("⚠️ この端末では現在地を取得できません");
         return;
     }
-    if (geoWatchId !== null) return; // 既に開始済みなら何もしない
+
+    if (!window.isSecureContext) {
+        console.warn("Geolocation requires HTTPS or localhost");
+        showToast("⚠️ 位置情報を使うにはHTTPS環境で開いてください");
+        return;
+    }
+
+    if (geoWatchId !== null) return;
 
     geoWatchId = navigator.geolocation.watchPosition(
         onGeoSuccess,
         onGeoError,
         {
-            enableHighAccuracy: true, // できるだけ高精度
-            maximumAge: 5000,         // 5秒までのキャッシュはOK
-            timeout: 20000            // 20秒でタイムアウト
+            enableHighAccuracy: false,
+            maximumAge: 10000,
+            timeout: 30000
         }
     );
 }
@@ -261,14 +294,74 @@ function onGeoSuccess(pos) {
     if (firstFix) {
         map.panTo(latLng);
         firstFix = false;
+        // 行動軌跡をFirebaseに保存
+        saveTrajectoryPoint(pos);
     }
 }
+// === 行動軌跡をFirebaseに保存 ===
+async function saveTrajectoryPoint(pos) {
+    const now = Date.now();
 
+    // 5秒以内なら保存しない
+    if (now - lastTrajectorySavedTime < TRAJECTORY_INTERVAL_MS) {
+        return;
+    }
+
+    const { latitude, longitude, accuracy } = pos.coords;
+
+    // 精度が悪い位置情報は保存しない
+    if (accuracy > MAX_TRAJECTORY_ACCURACY) {
+        console.log("位置精度が悪いため保存しません:", accuracy);
+        return;
+    }
+
+    lastTrajectorySavedTime = now;
+
+    try {
+        const trajectoryDocId = makeReadableDocId("trajectory");
+
+await setDoc(doc(db, "trajectory_logs", trajectoryDocId), {
+            f1_user_name: userName,
+            f2_session_id: sessionId,
+            f3_experiment_round: experimentRound,
+
+            f4_pattern: currentPattern,
+            f5_condition: currentCondition,
+
+            f6_latitude: latitude,
+            f7_longitude: longitude,
+            f8_accuracy: accuracy,
+
+            f9_device_timestamp: new Date(pos.timestamp),
+            f10_server_timestamp: serverTimestamp()
+        });
+
+        console.log("軌跡保存:", latitude, longitude, accuracy);
+
+    } catch (error) {
+        console.error("軌跡保存エラー:", error);
+    }
+}
 // === 測位失敗時 ===
 function onGeoError(err) {
-    // 典型コード: 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
-    console.warn('Geolocation error:', err);
-    showToast(`⚠️ 現在地エラー: ${err.message || '取得できませんでした'}`);
+    console.warn("Geolocation error:", err);
+
+    let message = "";
+
+    if (err.code === 1) {
+        message = "位置情報の利用が許可されていません。ブラウザの位置情報設定を確認してください。";
+    } else if (err.code === 2) {
+        message = "現在地を取得できませんでした。GPSやWi-Fiをオンにして、屋外または窓の近くで再試行してください。";
+    } else if (err.code === 3) {
+        message = "現在地の取得がタイムアウトしました。もう一度試してください。";
+    } else {
+        message = "現在地を取得できませんでした。";
+    }
+
+    console.log("Geolocation error code:", err.code);
+    console.log("Geolocation error message:", err.message);
+
+    showToast("⚠️ " + message);
 }
 
 // === 現在地の追跡を停止（必要なら呼び出し）===
@@ -702,29 +795,29 @@ function bindInfoWindow(marker) {
         selectedMarkers = [];
         clearSelection();
 
-if (currentCondition === 'similarPlusSolved') {
+        if (currentCondition === 'similarPlusSolved') {
 
-    if (marker.customData.answered) {
-        // 已回答图钉：只让自己变成“已回答的选中状态”
-        // 不添加 map-has-selection，所以其他图钉不会变透明
-        marker.content.classList.remove("dimmed");
-        marker.content.classList.add("selected");
-        selectedMarkers = [marker];
+            if (marker.customData.answered) {
+                // 已回答图钉：只让自己变成“已回答的选中状态”
+                // 不添加 map-has-selection，所以其他图钉不会变透明
+                marker.content.classList.remove("dimmed");
+                marker.content.classList.add("selected");
+                selectedMarkers = [marker];
 
-    } else {
-        // 未回答图钉：保持原来的类似投稿选中效果
-        // 其他图钉会变透明
-        document.body.classList.add("map-has-selection");
+            } else {
+                // 未回答图钉：保持原来的类似投稿选中效果
+                // 其他图钉会变透明
+                document.body.classList.add("map-has-selection");
 
-        const selected = getClusterMembers(marker, true);
+                const selected = getClusterMembers(marker, true);
 
-        selected.forEach(m => {
-            m.content.classList.add("selected");
-        });
+                selected.forEach(m => {
+                    m.content.classList.add("selected");
+                });
 
-        selectedMarkers = selected;
-    }
-}
+                selectedMarkers = selected;
+            }
+        }
 
         const group = getClusterMembers(marker, true);
         const avatar = avatarMap[marker.customData.id % Object.keys(avatarMap).length];
@@ -1003,25 +1096,27 @@ async function submitResponse(id) {
     const marker = allMarkers.find(m => m.customData.id === id);
     const input = document.getElementById(`response_${id}`);
     const responseText = input.value.trim();
-if (responseText === '') {
-    showToast('⚠️ 内容を入力してください！');
-    return;
-}
+    if (responseText === '') {
+        showToast('⚠️ 内容を入力してください！');
+        return;
+    }
 
 
     try {
 
 
-        await addDoc(collection(db, "answers"), {
-            f1_user_name: userName,
-            f2_session_id: sessionId,
-            f3_pattern: currentPattern,
-            f4_condition: currentCondition,
-            f5_answer_text: responseText,
-            f6_answer_length: responseText.length,
-            f7_post_id: id,
-            f8_timestamp: serverTimestamp()
-        });
+        const answerDocId = makeReadableDocId("answer", id);
+
+await setDoc(doc(db, "answers", answerDocId), {
+    f1_user_name: userName,
+    f2_session_id: sessionId,
+    f3_pattern: currentPattern,
+    f4_condition: currentCondition,
+    f5_answer_text: responseText,
+    f6_answer_length: responseText.length,
+    f7_post_id: id,
+    f8_timestamp: serverTimestamp()
+});
 
         logEvent("submit_answer", id, {
             answer_length: responseText.length,
