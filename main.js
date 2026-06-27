@@ -75,10 +75,6 @@ function makeReadableDocId(prefix, postId = null) {
 
     const safeSessionId = sessionId.replace(/[\/.#$[\]\s]/g, "_");
 
-    if (postId !== null) {
-        return `${safeSessionId}_${prefix}_post${postId}_${timeText}`;
-    }
-
     return `${safeSessionId}_${prefix}_${timeText}`;
 }
 async function logEvent(eventType, postId = null, extraInfo = {}) {
