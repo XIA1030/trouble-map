@@ -129,8 +129,7 @@ function initMap() {
 
     // 🆕 可選：右下に「現在地」ボタン
     addLocateControl();
-    // 右上に写真撮影ボタン
-    addCameraControl();
+
 
 }
 
@@ -401,33 +400,7 @@ function addLocateControl() {
     // 右下に配置
     map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(btn);
 }
-function addCameraControl() {
-    const btn = document.createElement('button');
 
-    btn.textContent = '📷';
-    btn.style.cssText = `
-        background:#fff;
-        border:1px solid #ccc;
-        border-radius:4px;
-        width:40px;
-        height:40px;
-        margin:10px;
-        cursor:pointer;
-        font-size:20px;
-        box-shadow:0 1px 4px rgba(0,0,0,0.3);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-    `;
-
-    btn.title = '写真を撮る';
-
-    btn.addEventListener('click', () => {
-        startCPPhoto();
-    });
-
-    map.controls[google.maps.ControlPosition.RIGHT_TOP].push(btn);
-}
 function loadAvatars(callback) {
     fetch('./avatars/avatar_list.json')
         .then(res => res.json())
@@ -1117,37 +1090,7 @@ function showToast(message) {
         setTimeout(() => document.body.removeChild(toast), 300);
     }, 2000);
 }
-// === CP写真撮影用 ===
-function startCPPhoto() {
-    logEvent("open_camera");
 
-    const input = document.getElementById("cpPhotoInput");
-
-    if (!input) {
-        console.error("cpPhotoInput が見つかりません");
-        showToast("⚠️ 写真撮影用の入力欄が見つかりません");
-        return;
-    }
-
-    input.value = "";
-    input.click();
-}
-
-function handleCPPhoto(input) {
-    const file = input.files && input.files[0];
-
-    if (!file) {
-        logEvent("photo_cancel");
-        showToast("写真撮影がキャンセルされました");
-        return;
-    }
-
-    logEvent("photo_taken", null, {
-        content: file.name
-    });
-
-    showToast("📷 写真を撮影しました");
-}
 
 
 async function submitResponse(id) {
@@ -1277,8 +1220,7 @@ window.editResponse = editResponse;
 window.cancelEdit = cancelEdit;
 window.saveResponse = saveResponse;
 window.closeInfoPanel = closeInfoPanel;
-window.startCPPhoto = startCPPhoto;
-window.handleCPPhoto = handleCPPhoto;
+
 
 window.addEventListener("load", initMap);
 
