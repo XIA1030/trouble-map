@@ -38,7 +38,7 @@ let firstFix = true;          // 最初の測位で地図を寄せる
 // === 行動軌跡記録用 ===
 let lastTrajectorySavedTime = 0;          // 最後に軌跡を保存した時刻
 const TRAJECTORY_INTERVAL_MS = 5000;      // 5秒ごとに保存
-const MAX_TRAJECTORY_ACCURACY = 50;       // 精度50m以内の点だけ保存
+const MAX_TRAJECTORY_ACCURACY = 100;       // 精度50m以内の点だけ保存
 // 👇 逻辑聚类用的全局表
 let clusters = [];                 // [{id: 0, type: 'xxx', members: [marker, ...]}, ...]
 let markerIdToClusterId = {};      // { marker.customData.id : clusterId }
@@ -83,7 +83,9 @@ function makeReadableDocId(prefix, postId = null) {
 }
 async function logEvent(eventType, postId = null, extraInfo = {}) {
     try {
-        await addDoc(collection(db, "user_events"), {
+        const eventDocId = makeReadableDocId(eventType, postId);
+
+        await setDoc(doc(db, "user_events", eventDocId), {
             f1_user_name: userName,
             f2_session_id: sessionId,
             f3_event_type: eventType,
@@ -291,12 +293,13 @@ function onGeoSuccess(pos) {
     }
 
     // 最初の測位で地図を寄せる
-    if (firstFix) {
-        map.panTo(latLng);
-        firstFix = false;
-        // 行動軌跡をFirebaseに保存
-        saveTrajectoryPoint(pos);
-    }
+if (firstFix) {
+    map.panTo(latLng);
+    firstFix = false;
+}
+
+// 行動軌跡をFirebaseに保存
+saveTrajectoryPoint(pos);
 }
 // === 行動軌跡をFirebaseに保存 ===
 async function saveTrajectoryPoint(pos) {
@@ -320,7 +323,7 @@ async function saveTrajectoryPoint(pos) {
     try {
         const trajectoryDocId = makeReadableDocId("trajectory");
 
-await setDoc(doc(db, "trajectory_logs", trajectoryDocId), {
+        await setDoc(doc(db, "trajectory_logs", trajectoryDocId), {
             f1_user_name: userName,
             f2_session_id: sessionId,
             f3_experiment_round: experimentRound,
@@ -336,7 +339,7 @@ await setDoc(doc(db, "trajectory_logs", trajectoryDocId), {
             f10_server_timestamp: serverTimestamp()
         });
 
-        console.log("軌跡保存:", latitude, longitude, accuracy);
+        console.log("軌跡保存:", trajectoryDocId, latitude, longitude, accuracy);
 
     } catch (error) {
         console.error("軌跡保存エラー:", error);
