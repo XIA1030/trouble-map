@@ -60,7 +60,7 @@ while (!["1", "2", "3"].includes(experimentRound)) {
 }
 
 let sessionId = userName + "_" + experimentRound;
-function makeReadableDocId(prefix, postId = null) {
+function makeReadableDocId(prefix) {
     const now = new Date();
 
     const timeText =
@@ -79,7 +79,7 @@ function makeReadableDocId(prefix, postId = null) {
 }
 async function logEvent(eventType, postId = null, extraInfo = {}) {
     try {
-        const eventDocId = makeReadableDocId(eventType, postId);
+        const eventDocId = makeReadableDocId(eventType);
 
         await setDoc(doc(db, "user_events", eventDocId), {
             f1_user_name: userName,
@@ -1104,7 +1104,7 @@ async function submitResponse(id) {
     try {
 
 
-        const answerDocId = makeReadableDocId("answer", id);
+        const answerDocId = makeReadableDocId("answer");
 
 await setDoc(doc(db, "answers", answerDocId), {
     f1_user_name: userName,
