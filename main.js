@@ -88,10 +88,15 @@ async function logEvent(eventType, postId = null, extraInfo = {}) {
             f4_pattern: currentPattern,
             f5_condition: currentCondition,
             f6_post_id: postId,
+
             f7_type: extraInfo.type ?? null,
             f8_content: extraInfo.content ?? null,
             f9_answered: extraInfo.answered ?? null,
-            f10_timestamp: serverTimestamp()
+
+            f10_answer_length: extraInfo.answer_length ?? null,
+            f11_affected_post_count: extraInfo.affected_post_count ?? null,
+
+            f12_timestamp: serverTimestamp()
         });
     } catch (error) {
         console.error("ログ保存エラー:", error);
@@ -1097,31 +1102,77 @@ async function submitResponse(id) {
     const marker = allMarkers.find(m => m.customData.id === id);
     const input = document.getElementById(`response_${id}`);
     const responseText = input.value.trim();
+
     if (responseText === '') {
         showToast('⚠️ 内容を入力してください！');
         return;
     }
 
+    const sameTypeNearby = getClusterMembers(marker, true);
 
     try {
+        // 1. 先保存“用户真正作答”的那个问题
+        const directAnswerDocId = makeReadableDocId("answer_direct");
 
-
-        const answerDocId = makeReadableDocId("answer");
-
-        await setDoc(doc(db, "answers", answerDocId), {
+        await setDoc(doc(db, "answers", directAnswerDocId), {
             f1_user_name: userName,
             f2_session_id: sessionId,
             f3_pattern: currentPattern,
             f4_condition: currentCondition,
+
             f5_answer_text: responseText,
             f6_answer_length: responseText.length,
+
             f7_post_id: id,
-            f8_timestamp: serverTimestamp()
+            f8_original_post_id: id,
+
+            f9_answer_source: "direct",
+            f10_is_direct_answer: true,
+            f11_is_propagated_answer: false,
+
+            f12_affected_post_count: sameTypeNearby.length,
+            f13_timestamp: serverTimestamp()
         });
 
+        // 2. 再保存“同步到周围同种问题”的记录
+        for (const m of sameTypeNearby) {
+            if (m.customData.id === id) {
+                continue;
+            }
+
+            const propagatedAnswerDocId = makeReadableDocId("answer_propagated");
+
+            await setDoc(doc(db, "answers", propagatedAnswerDocId), {
+                f1_user_name: userName,
+                f2_session_id: sessionId,
+                f3_pattern: currentPattern,
+                f4_condition: currentCondition,
+
+                f5_answer_text: responseText,
+                f6_answer_length: responseText.length,
+
+                f7_post_id: m.customData.id,
+                f8_original_post_id: id,
+
+                f9_answer_source: "propagated",
+                f10_is_direct_answer: false,
+                f11_is_propagated_answer: true,
+
+                f12_affected_post_count: sameTypeNearby.length,
+                f13_timestamp: serverTimestamp()
+            });
+        }
+
+        // 3. 行为日志：真正提交回答
         logEvent("submit_answer", id, {
             answer_length: responseText.length,
+            affected_post_count: sameTypeNearby.length
+        });
 
+        // 4. 行为日志：同步回答
+        logEvent("propagate_answer", id, {
+            answer_length: responseText.length,
+            affected_post_count: sameTypeNearby.length
         });
 
     } catch (error) {
@@ -1129,12 +1180,20 @@ async function submitResponse(id) {
         showToast("⚠️ 回答は画面上に反映しましたが、Firebase保存に失敗しました");
     }
 
-    const sameTypeNearby = getClusterMembers(marker, true);
-
     sameTypeNearby.forEach(m => {
         m.customData.answered = true;
         m.customData.responseText = responseText;
-        m.customData.answeredByUser = false;
+
+        // 用户真正作答的那个 marker
+        if (m.customData.id === id) {
+            m.customData.answeredByUser = true;
+            m.customData.answerSource = "direct";
+        } else {
+            // 被同步回答的周围同类 marker
+            m.customData.answeredByUser = false;
+            m.customData.answerSource = "propagated";
+            m.customData.originalAnswerPostId = id;
+        }
 
         if (currentCondition === 'similarPlusSolved') {
             m.content.classList.add("answered");
@@ -1145,8 +1204,6 @@ async function submitResponse(id) {
             m.content.classList.remove("selected");
         }
     });
-
-    marker.customData.answeredByUser = true;
 
     google.maps.event.trigger(marker, 'click');
 
