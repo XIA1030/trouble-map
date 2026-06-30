@@ -753,10 +753,7 @@ function clearSelection() {
             m.content.classList.remove("selected");
             m.content.classList.remove("selected-answered");
             // similarPlusSolved 中，已回答图钉取消选中后恢复 dimmed
-            if (
-                currentCondition === 'similarPlusSolved' &&
-                m.customData.answered
-            ) {
+            if (m.customData.answered) {
                 m.content.classList.add("dimmed");
             }
         }
@@ -1203,6 +1200,10 @@ async function submitResponse(id) {
             m.content.classList.remove("dimmed");
             m.content.classList.remove("selected");
         }
+        // 所有条件中，都显示已回答效果
+        m.content.classList.add("answered");
+        m.content.classList.add("dimmed");
+        m.content.classList.remove("selected");
     });
 
     google.maps.event.trigger(marker, 'click');
